@@ -1,0 +1,119 @@
+{
+    "title": "Custom Keybindings",
+    "rules": [
+        {
+            "description": "Remap Caps Lock to Control when held, Backspace when pressed",
+            "manipulators": [
+                {
+                    "type": "basic",
+                    "from": {
+                        "key_code": "caps_lock",
+                        "modifiers": {
+                            "optional": ["any"]
+                        }
+                    },
+                    "to": [
+                        {
+                            "key_code": "left_control",
+                            "lazy": true
+                        }
+                    ],
+                    "to_if_alone": [
+                        {
+                            "key_code": "delete_or_backspace"
+                        }
+                    ],
+                    "to_delayed_action": {
+                        "to_if_canceled": [
+                            {
+                                "key_code": "caps_lock"
+                            }
+                        ],
+                        "to_if_invoked": [
+                            {
+                                "key_code": "caps_lock"
+                            }
+                        ],
+                        "to_if_pressed_timeout": [
+                            {
+                                "key_code": "caps_lock",
+                                "set_variable": {
+                                    "name": "caps_lock_pressed",
+                                    "value": 1
+                                }
+                            }
+                        ],
+                        "to_if_canceled_timeout": [
+                            {
+                                "key_code": "delete_or_backspace",
+                                "conditions": [
+                                    {
+                                        "name": "caps_lock_pressed",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "description": "Remap Delete to Caps Lock",
+            "manipulators": [
+                {
+                    "type": "basic",
+                    "from": {
+                        "key_code": "delete_or_backspace"
+                    },
+                    "to": [
+                        {
+                            "key_code": "caps_lock"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "description": "Remap Right Command to Option",
+            "manipulators": [
+                {
+                    "type": "basic",
+                    "from": {
+                        "key_code": "right_command"
+                    },
+                    "to": [
+                        {
+                            "key_code": "left_option"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Ctrl+[ to Escape",
+            "rules": [
+                {
+                    "description": "Remap Ctrl+[ to Escape",
+                    "manipulators": [
+                        {
+                            "from": {
+                                "key_code": "open_bracket",
+                                "modifiers": {
+                                    "mandatory": ["control"]
+                                }
+                            },
+                            "to": [
+                                {
+                                    "key_code": "escape"
+                                }
+                            ],
+                            "type": "basic"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

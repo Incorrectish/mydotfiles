@@ -1,0 +1,1 @@
+{"title":"Caps Lock to Backspace and Control","rules":[{"description":"","manipulators":[{"type":"basic","from":{"key_code":"caps_lock"},"to_after_key_up":[{"repeat":true,"key_code":"delete_or_backspace"}],"to_if_held_down":[{"repeat":true,"key_code":"left_control"}]}]}]}
