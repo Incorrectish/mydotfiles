@@ -1,5 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+# https://stock.adobe.com/images/a-beautiful-view-on-tokyo-japanese-skyline-city-with-scyscraper-office-buildings-anime-cartoonish-artstyle-cherry-blossom-growing-wallpaper-background-16-9/754571179
 SETUVAR --export EDITOR:nvim
 SETUVAR __fish_initialized:3400
 SETUVAR fish_color_autosuggestion:555
