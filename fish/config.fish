@@ -90,8 +90,8 @@ function fzf_nvim
 end
 
 bind \cf fzf_cd
-bind \cn fzf_nvim
-bind \ce fzf_file
+# bind \cn fzf_nvim
+bind \cn fzf_file
 
 set -gx PATH $HOME/.local/bin/ $PATH
 set -gx PATH /usr/local/anaconda3/bin $PATH
@@ -108,9 +108,11 @@ source /Users/ishan/.opam/opam-init/init.fish >/dev/null 2>/dev/null; or true
 
 zoxide init fish --cmd cd | source
 
-if set -q ZELLIJ
-else
-  zellij -l ~/.config/zellij/no-tab-bar-layout.kdl
-end
+fish_default_key_bindings
 
-export PATH="$PATH:/Users/ishan/.risc0/bin"
+fish_add_path /home/ishan/.nvm/versions/node/v22.18.0/bin/
+
+bind \ce ce edit_command_buffer
+
+# opencode
+fish_add_path /Users/ishan/.opencode/bin

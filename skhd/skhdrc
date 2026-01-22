@@ -1,4 +1,4 @@
-alt - return : wezterm &disown
+alt - return : wezterm --config-file ~/.config/wezterm/wezterm.lua 
 
 shift + alt - c : yabai -m window --close
 
