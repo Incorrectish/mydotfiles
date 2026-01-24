@@ -375,10 +375,14 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     lazy = false,
     dependencies = {
-      -- 'nvim-treesitter/nvim-treesitter-textobjects', -- disabled: incompatible with nvim-treesitter v1.0+
       'nvim-treesitter/nvim-treesitter-context'
     },
     build = ':TSUpdate',
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    branch = 'main',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
   },
   {
     'kyazdani42/nvim-tree.lua',
