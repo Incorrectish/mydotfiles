@@ -76,7 +76,7 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+vim.keymap.set('n', '<leader>dl', vim.diagnostic.setloclist, { desc = '[D]iagnostics [L]ist' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -183,76 +183,59 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
--- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
+-- nvim-treesitter v1.0+ uses a new API
 vim.defer_fn(function()
-  require('nvim-treesitter.configs').setup {
-    -- Add languages to be installed here that you want installed for treesitter
+  require('nvim-treesitter').setup {
     ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
-
-    -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
-    -- Install languages synchronously (only applied to `ensure_installed`)
     sync_install = false,
-    -- List of parsers to ignore installing
     ignore_install = {},
-    -- You can specify additional Treesitter modules here: -- For example: -- playground = {--enable = true,-- },
-    modules = {},
-    highlight = { enable = true },
-    indent = { enable = true },
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = '<c-space>',
-        node_incremental = '<c-space>',
-        scope_incremental = '<c-s>',
-        node_decremental = '<M-space>',
-      },
-    },
-    textobjects = {
-      select = {
-        enable = true,
-        lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-        keymaps = {
-          -- You can use the capture groups defined in textobjects.scm
-          ['aa'] = '@parameter.outer',
-          ['ia'] = '@parameter.inner',
-          ['af'] = '@function.outer',
-          ['if'] = '@function.inner',
-          ['ac'] = '@class.outer',
-          ['ic'] = '@class.inner',
-        },
-      },
-      move = {
-        enable = true,
-        set_jumps = true, -- whether to set jumps in the jumplist
-        goto_next_start = {
-          [']m'] = '@function.outer',
-          [']]'] = '@class.outer',
-        },
-        goto_next_end = {
-          [']M'] = '@function.outer',
-          [']['] = '@class.outer',
-        },
-        goto_previous_start = {
-          ['[m'] = '@function.outer',
-          ['[['] = '@class.outer',
-        },
-        goto_previous_end = {
-          ['[M'] = '@function.outer',
-          ['[]'] = '@class.outer',
-        },
-      },
-      swap = {
-        enable = true,
-        swap_next = {
-          ['<leader>a'] = '@parameter.inner',
-        },
-        swap_previous = {
-          ['<leader>A'] = '@parameter.inner',
-        },
-      },
-    },
   }
+
+  -- Configure nvim-treesitter-textobjects (disabled: incompatible with nvim-treesitter v1.0+)
+  -- require('nvim-treesitter-textobjects').setup {
+  --   select = {
+  --     enable = true,
+  --     lookahead = true,
+  --     keymaps = {
+  --       ['aa'] = '@parameter.outer',
+  --       ['ia'] = '@parameter.inner',
+  --       ['af'] = '@function.outer',
+  --       ['if'] = '@function.inner',
+  --       ['ac'] = '@class.outer',
+  --       ['ic'] = '@class.inner',
+  --     },
+  --   },
+  --   move = {
+  --     enable = true,
+  --     set_jumps = true,
+  --     goto_next_start = {
+  --       [']m'] = '@function.outer',
+  --       [']]'] = '@class.outer',
+  --     },
+  --     goto_next_end = {
+  --       [']M'] = '@function.outer',
+  --       [']['] = '@class.outer',
+  --     },
+  --     goto_previous_start = {
+  --       ['[m'] = '@function.outer',
+  --       ['[['] = '@class.outer',
+  --     },
+  --     goto_previous_end = {
+  --       ['[M'] = '@function.outer',
+  --       ['[]'] = '@class.outer',
+  --     },
+  --   },
+  --   swap = {
+  --     enable = true,
+  --     swap_next = {
+  --       ['<leader>a'] = '@parameter.inner',
+  --     },
+  --     swap_previous = {
+  --       ['<leader>A'] = '@parameter.inner',
+  --     },
+  --   },
+  -- }
 end, 0)
 
 -- [[ Configure LSP ]]
@@ -343,17 +326,16 @@ local mason_lspconfig = require 'mason-lspconfig'
 
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
-}
-
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
+  handlers = {
+    function(server_name)
+      require('lspconfig')[server_name].setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = servers[server_name],
+        filetypes = (servers[server_name] or {}).filetypes,
+      }
+    end,
+  },
 }
 
 -- [[ Configure nvim-cmp ]]
@@ -416,7 +398,6 @@ cmp.setup {
 vim.api.nvim_command('colorscheme incorrectish_colors')
 require "user.options"
 require "user.dashboard"
-require 'user.plugins'
 require 'user.lualine'
 require 'user.nvim-tree'
 require 'user.leap'
