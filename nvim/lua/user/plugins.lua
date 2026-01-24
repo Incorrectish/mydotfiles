@@ -1,210 +1,70 @@
 require('lazy').setup({
-  -- NOTE: First, some plugins that don't require any configuration
-
-  -- Git related plugins
+  -- Git
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
+
+  -- Utilities
   'tpope/vim-repeat',
-
-  -- {
-  --   'vyfor/cord.nvim',
-  --   build = './build || .\\build',
-  --   event = 'VeryLazy',
-  --   opts = {},
-  -- },
-  -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
+  'tpope/vim-surround',
+  'famiu/bufdelete.nvim',
 
-  -- better buffer deletion
-  "famiu/bufdelete.nvim",
-
-  'ray-x/lsp_signature.nvim',
-  'ThePrimeagen/vim-be-good',
-  'akinsho/org-bullets.nvim',
-  -- lazy.nvim
-  -- {
-  --   "folke/noice.nvim",
-  --   event = "VeryLazy",
-  --   opts = {
-  --     -- add any options here
-  --   },
-  --   dependencies = {
-  --     -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-  --     "MunifTanjim/nui.nvim",
-  --     -- OPTIONAL:
-  --     --   `nvim-notify` is only needed, if you want to use the notification view.
-  --     --   If not available, we use `mini` as the fallback
-  --     "rcarriga/nvim-notify",
-  --   }
-  -- },
-  -- lazy.nvim
+  -- LSP
   {
-    "m4xshen/hardtime.nvim",
-    dependencies = { "MunifTanjim/nui.nvim", "nvim-lua/plenary.nvim" },
-    opts = {}
-  },
-  {
-    'MeanderingProgrammer/render-markdown.nvim',
-    opts = {},
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-  },
-  {
-    'stevearc/conform.nvim',
-    opts = {},
-  },
-  {
-    "vhyrro/luarocks.nvim",
-    priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
-    config = true,
-  },
-  {
-    "folke/persistence.nvim",
-    event = "BufReadPre", -- this will only start session saving when an actual file was opened
-  },
-  -- NOTE: This is where your plugins related to LSP can be installed.
-  --  The configuration is done below. Search for lspconfig to find it below.
-  {
-    -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
-      -- Automatically install LSPs to stdpath for neovim
       { 'williamboman/mason.nvim', config = true },
       'williamboman/mason-lspconfig.nvim',
-
-      -- Useful status updates for LSP
-      -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim',       opts = {} },
-
-      -- Additional lua configuration, makes nvim stuff amazing!
+      { 'j-hui/fidget.nvim', opts = {} },
       'folke/neodev.nvim',
     },
   },
-  {
-    'nvim-orgmode/orgmode',
-    event = 'VeryLazy',
-    ft = { 'org' },
-    config = function()
-      -- Setup orgmode
-      require('orgmode').setup({
-        org_agenda_files = '~/orgfiles/**/*',
-        org_default_notes_file = '~/orgfiles/refile.org',
-      })
+  'ray-x/lsp_signature.nvim',
 
-      -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
-      -- add ~org~ to ignore_install
-      -- require('nvim-treesitter.configs').setup({
-      --   ensure_installed = 'all',
-      --   ignore_install = { 'org' },
-      -- })
-    end,
-  },
+  -- Completion
   {
-    -- Autocompletion
     'hrsh7th/nvim-cmp',
     dependencies = {
-      -- Snippet Engine & its associated nvim-cmp source
       'L3MON4D3/LuaSnip',
       'saadparwaiz1/cmp_luasnip',
-
-      -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
-      'hrsh7th/cmp-path',    -- path completions
-      'hrsh7th/cmp-cmdline', -- cmdline completions
-      -- Adds a number of user-friendly snippets
+      'hrsh7th/cmp-cmdline',
       'rafamadriz/friendly-snippets',
     },
   },
-  -- {
-  --   "nvim-neorg/neorg",
-  --   dependencies = { "luarocks.nvim" },
-  --   version = "*",
-  --   config = function()
-  --     require("neorg").setup {
-  --       load = {
-  --         ["core.defaults"] = {},
-  --         ["core.concealer"] = {},
-  --         ["core.dirman"] = {
-  --           config = {
-  --             workspaces = {
-  --               notes = "~/.notes",
-  --             },
-  --             default_workspace = ".notes",
-  --           },
-  --         },
-  --       },
-  --     }
-  --
-  --     vim.wo.foldlevel = 99
-  --     vim.wo.conceallevel = 2
-  --   end,
-  -- },
 
+  -- Treesitter
   {
-    "leath-dub/snipe.nvim",
-    keys = {
-      { "gb", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu" }
-    },
-    opts = {
-      ui = {
-        position = "center",
-      },
-      hints = {
-        -- Charaters to use for hints (NOTE: make sure they don't collide with the navigation keymaps)
-        dictionary = "sadflewcmpghio",
-      },
-      navigate = {
-        -- When the list is too long it is split into pages
-        -- `[next|prev]_page` options allow you to navigate
-        -- this list
-        next_page = "J",
-        prev_page = "K",
-
-        -- You can also just use normal navigation to go to the item you want
-        -- this option just sets the keybind for selecting the item under the
-        -- cursor
-        under_cursor = "<C-m>",
-
-        -- In case you changed your mind, provide a keybind that lets you
-        -- cancel the snipe and close the window.
-        cancel_snipe = "q",
-      },
-      -- Define the way buffers are sorted by default
-      -- Can be any of "default" (sort buffers by their number) or "last" (sort buffers by last accessed)
-      sort = "last"
-    },
-  },
-  -- {
-  --   "OXY2DEV/markview.nvim",
-  --   lazy = false, -- Recommended
-  --   -- ft = "markdown" -- If you decide to lazy-load anyway
-  --
-  --   dependencies = {
-  --     -- You will not need this if you installed the
-  --     -- parsers manually
-  --     -- Or if the parsers are in your $RUNTIMEPATH
-  --     "nvim-treesitter/nvim-treesitter",
-  --
-  --     "nvim-tree/nvim-web-devicons"
-  --   }
-  -- },
-  "tpope/vim-surround",
-  -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim' },
-  {
-    "folke/trouble.nvim",
-    dependencies = "kyazdani42/nvim-web-devicons",
-    config = function()
-      require("trouble").setup()
-    end
+    'nvim-treesitter/nvim-treesitter',
+    lazy = false,
+    dependencies = { 'nvim-treesitter/nvim-treesitter-context' },
+    build = ':TSUpdate',
   },
   {
-    -- Adds git related signs to the gutter, as well as utilities for managing changes
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    branch = 'main',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+  },
+
+  -- Telescope
+  {
+    'nvim-telescope/telescope.nvim',
+    branch = '0.1.x',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      {
+        'nvim-telescope/telescope-fzf-native.nvim',
+        build = 'make',
+        cond = function() return vim.fn.executable 'make' == 1 end,
+      },
+    },
+  },
+
+  -- Git integration
+  {
     'lewis6991/gitsigns.nvim',
     opts = {
-      -- See `:help gitsigns.txt`
       signs = {
         add = { text = '+' },
         change = { text = '~' },
@@ -214,287 +74,165 @@ require('lazy').setup({
       },
       on_attach = function(bufnr)
         local gs = package.loaded.gitsigns
-
         local function map(mode, l, r, opts)
           opts = opts or {}
           opts.buffer = bufnr
           vim.keymap.set(mode, l, r, opts)
         end
-
         -- Navigation
         map({ 'n', 'v' }, ']c', function()
-          if vim.wo.diff then
-            return ']c'
-          end
-          vim.schedule(function()
-            gs.next_hunk()
-          end)
+          if vim.wo.diff then return ']c' end
+          vim.schedule(function() gs.next_hunk() end)
           return '<Ignore>'
         end, { expr = true, desc = 'Jump to next hunk' })
-
         map({ 'n', 'v' }, '[c', function()
-          if vim.wo.diff then
-            return '[c'
-          end
-          vim.schedule(function()
-            gs.prev_hunk()
-          end)
+          if vim.wo.diff then return '[c' end
+          vim.schedule(function() gs.prev_hunk() end)
           return '<Ignore>'
         end, { expr = true, desc = 'Jump to previous hunk' })
-
-        -- Actions
-        -- visual mode
+        -- Visual mode actions
         map('v', '<leader>hs', function()
           gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end, { desc = 'stage git hunk' })
+        end, { desc = 'Stage git hunk' })
         map('v', '<leader>hr', function()
           gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end, { desc = 'reset git hunk' })
-        -- -- normal mode
-        -- map('n', '<leader>hs', gs.stage_hunk, { desc = 'git stage hunk' })
-        -- map('n', '<leader>hr', gs.reset_hunk, { desc = 'git reset hunk' })
-        -- map('n', '<leader>hS', gs.stage_buffer, { desc = 'git Stage buffer' })
-        -- map('n', '<leader>hu', gs.undo_stage_hunk, { desc = 'undo stage hunk' })
-        -- map('n', '<leader>hR', gs.reset_buffer, { desc = 'git Reset buffer' })
-        -- map('n', '<leader>hp', gs.preview_hunk, { desc = 'preview git hunk' })
-        -- map('n', '<leader>hb', function()
-        --   gs.blame_line { full = false }
-        -- end, { desc = 'git blame line' })
-        -- map('n', '<leader>hd', gs.diffthis, { desc = 'git diff against index' })
-        -- map('n', '<leader>hD', function()
-        --   gs.diffthis '~'
-        -- end, { desc = 'git diff against last commit' })
-        --
-        -- -- Toggles
-        -- map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = 'toggle git blame line' })
-        -- map('n', '<leader>td', gs.toggle_deleted, { desc = 'toggle git show deleted' })
-        --
-        -- Text object
-        -- map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>', { desc = 'select git hunk' })
+        end, { desc = 'Reset git hunk' })
       end,
     },
   },
   {
-    "incorrectish/incorrectish_colors",
-    opts = {
-      style = "light",
-    },
-  },
-  {
-    "https://github.com/navarasu/onedark.nvim",
-  },
-  {
-    -- Set lualine as statusline
-    'nvim-lualine/lualine.nvim',
-    -- -- See `:help lualine.txt`
-    opts = {
-      options = {
-        icons_enabled = false,
-        theme = 'auto',
-        component_separators = '|',
-        section_separators = '',
-      },
-    },
-  },
-
-  {
-    "NeogitOrg/neogit",
+    'NeogitOrg/neogit',
     dependencies = {
-      "nvim-lua/plenary.nvim",  -- required
-      "sindrets/diffview.nvim", -- optional - Diff integration
-
-      -- Only one of these is needed, not both.
-      "nvim-telescope/telescope.nvim", -- optional
+      'nvim-lua/plenary.nvim',
+      'sindrets/diffview.nvim',
+      'nvim-telescope/telescope.nvim',
     },
-    config = true
+    config = true,
   },
+
+  -- UI
   {
-    "ThePrimeagen/harpoon",
-    branch = "harpoon2",
-    dependencies = { "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope.nvim", }
+    'incorrectish/incorrectish_colors',
+    opts = { style = 'deep' },
+    config = function(_, opts)
+      require('incorrectish_colors').setup(opts)
+      require('incorrectish_colors').load()
+    end,
   },
+  'navarasu/onedark.nvim',
+  { 'nvim-lualine/lualine.nvim', opts = {} },
+  { 'lukas-reineke/indent-blankline.nvim', main = 'ibl', opts = {} },
+  { 'folke/which-key.nvim' },
+  { 'nvimdev/dashboard-nvim' },
+  { 'norcalli/nvim-colorizer.lua' },
+
+  -- File management
+  { 'kyazdani42/nvim-tree.lua', dependencies = { 'kyazdani42/nvim-web-devicons' } },
   {
     'stevearc/oil.nvim',
     opts = {},
-    -- Optional dependencies
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-  },
-  {
-    -- Add indentation guides even on blank lines
-    'lukas-reineke/indent-blankline.nvim',
-    -- Enable `lukas-reineke/indent-blankline.nvim`
-    -- See `:help ibl`
-    main = 'ibl',
-    opts = {},
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('oil').setup()
+      vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
+    end,
   },
 
-  -- "gc" to comment visual regions/lines
+  -- Navigation
+  'ggandor/leap.nvim',
+  {
+    'ThePrimeagen/harpoon',
+    branch = 'harpoon2',
+    dependencies = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' },
+  },
+  {
+    'leath-dub/snipe.nvim',
+    keys = {
+      { 'gb', function() require('snipe').open_buffer_menu() end, desc = 'Open Snipe buffer menu' },
+    },
+    opts = {
+      ui = { position = 'center' },
+      hints = { dictionary = 'sadflewcmpghio' },
+      navigate = {
+        next_page = 'J',
+        prev_page = 'K',
+        under_cursor = '<C-m>',
+        cancel_snipe = 'q',
+      },
+      sort = 'last',
+    },
+  },
+
+  -- Editing
   {
     'numToStr/Comment.nvim',
     opts = {
-      toggler = {
-        ---Line-comment toggle keymap
-        line = 'gcc',
-        ---Block-comment toggle keymap
-        block = 'g/c',
-      },
-      ---LHS of operator-pending mappings in NORMAL and VISUAL mode
-      opleader = {
-        ---Line-comment keymap
-        line = 'gc',
-        ---Block-comment keymap
-        block = 'g/',
-      },
-    }
-  },
-
-  -- Fuzzy Finder (files, lsp, etc)
-  {
-    'nvim-telescope/telescope.nvim',
-    branch = '0.1.x',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-      -- Only load if `make` is available. Make sure you have the system
-      -- requirements installed.
-      {
-        'nvim-telescope/telescope-fzf-native.nvim',
-        -- NOTE: If you are having trouble with this installation,
-        --       refer to the README for telescope-fzf-native for more instructions.
-        build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
+      toggler = { line = 'gcc', block = 'g/c' },
+      opleader = { line = 'gc', block = 'g/' },
     },
   },
+  { 'windwp/nvim-autopairs', config = function() require('nvim-autopairs').setup {} end },
 
+  -- Diagnostics
   {
-    -- Highlight, edit, and navigate code
-    'nvim-treesitter/nvim-treesitter',
-    lazy = false,
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter-context'
-    },
-    build = ':TSUpdate',
+    'folke/trouble.nvim',
+    dependencies = 'kyazdani42/nvim-web-devicons',
+    config = function() require('trouble').setup() end,
   },
   {
-    'nvim-treesitter/nvim-treesitter-textobjects',
-    branch = 'main',
-    dependencies = { 'nvim-treesitter/nvim-treesitter' },
-  },
-  {
-    'kyazdani42/nvim-tree.lua',
-    dependencies = {
-      'kyazdani42/nvim-web-devicons', -- optional, for file icons
-    },
+    'hedyhli/outline.nvim',
+    config = function() require('outline').setup {} end,
   },
 
+  -- Formatting
   {
-    'nvimdev/dashboard-nvim',
-  },
-  {
-    "windwp/nvim-autopairs",
-    config = function() require("nvim-autopairs").setup {} end
-  },
-  {
-    "norcalli/nvim-colorizer.lua",
-  },
-  {
-    "hedyhli/outline.nvim",
+    'stevearc/conform.nvim',
     config = function()
-      require("outline").setup {
-        -- Your setup opts here (leave empty to use defaults)
+      require('conform').setup {
+        formatters_by_ft = {
+          lua = { 'stylua' },
+          python = { 'isort', 'black' },
+          rust = { 'rustfmt', lsp_format = 'fallback' },
+          javascript = { 'prettierd', 'prettier', stop_after_first = true },
+          typescript = { 'prettierd', 'prettier', stop_after_first = true },
+        },
+        format_on_save = {
+          timeout_ms = 500,
+          lsp_format = 'fallback',
+        },
       }
     end,
   },
-  "tpope/vim-repeat",
-  "ggandor/leap.nvim"
-  -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
-  --       These are some example plugins that I've included in the kickstart repository.
-  --       Uncomment any of the lines below to enable them.
-  -- require 'kickstart.plugins.autoformat',
-  -- require 'kickstart.plugins.debug',
 
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
-  --    up-to-date with whatever is in the kickstart repo.
-  --    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  --
-  --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-  -- { import = 'custom.plugins' },
+  -- Org mode
+  {
+    'nvim-orgmode/orgmode',
+    event = 'VeryLazy',
+    ft = { 'org' },
+    config = function()
+      require('orgmode').setup {
+        org_agenda_files = '~/orgfiles/**/*',
+        org_default_notes_file = '~/orgfiles/refile.org',
+      }
+    end,
+  },
+  'akinsho/org-bullets.nvim',
+
+  -- Markdown
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    opts = {},
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
+  },
+
+  -- Session
+  { 'folke/persistence.nvim', event = 'BufReadPre' },
+
+  -- Misc
+  { 'vhyrro/luarocks.nvim', priority = 1000, config = true },
+  { 'm4xshen/hardtime.nvim', dependencies = { 'MunifTanjim/nui.nvim', 'nvim-lua/plenary.nvim' }, opts = {} },
+  'ThePrimeagen/vim-be-good',
 }, {})
 
-require("oil").setup()
-vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
-require("lsp_signature").setup()
--- require("noice").setup({
---   lsp = {
---     -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
---     override = {
---       ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
---       ["vim.lsp.util.stylize_markdown"] = true,
---       ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
---     },
---     signature = {
---       enabled = false,
---     }
---   },
---   notify = {
---     enabled = false,
---   },
---   messages = {
---     enabled = false
---   },
---   -- you can enable a preset for easier configuration
---   presets = {
---     bottom_search = true, -- use a classic bottom cmdline for search
---     command_palette = true, -- position the cmdline and popupmenu together
---     long_message_to_split = true, -- long messages will be sent to a split
---     inc_rename = false, -- enables an input dialog for inc-rename.nvim
---     lsp_doc_border = false, -- add a border to hover docs and signature help
---   },
--- })
---
-require('incorrectish_colors').setup {
-  style = 'deep'
-}
-require('incorrectish_colors').load()
-
-
--- Keybindings
--- vim.api.nvim_set_keymap('n', '<leader>mtd', ':Neorg keybind norg core.norg.qol.todo_items.todo.task_done<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mtt', ':Neorg keybind norg core.norg.qol.todo_items.todo.task_todo<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mdd', ':Neorg keybind norg core.norg.qol.todo_items.todo.task_deadline<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mnh', ':Neorg keybind norg core.norg.movement.next.heading<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mph', ':Neorg keybind norg core.norg.movement.previous.heading<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>msd', ':Neorg keybind norg core.norg.qol.todo_items.todo.task_scheduled<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mtt', ':Neorg keybind norg core.norg.qol.todo_items.todo.task_tag<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mnc', ':Neorg keybind norg core.norg.capture<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mne', ':Neorg keybind norg core.norg.edit<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mtc', ':Neorg keybind norg core.norg.qol.todo_items.todo.task_cycle<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mtb', ':Neorg keybind norg core.norg.qol.todo_items.todo.checkbox_toggle<CR>', { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>mtoc', ':Neorg keybind norg core.qol.toc.generate<CR>', { noremap = true, silent = true })
-
--- require('akinsho/org-bullets.nvim').setup()
-require("conform").setup({
-  formatters_by_ft = {
-    lua = { "stylua" },
-    -- Conform will run multiple formatters sequentially
-    python = { "isort", "black" },
-    -- You can customize some of the format options for the filetype (:help conform.format)
-    rust = { "rustfmt", lsp_format = "fallback" },
-    -- Conform will run the first available formatter
-    javascript = { "prettierd", "prettier", stop_after_first = true },
-    typescript = { "prettierd", "prettier", stop_after_first = true },
-  },
-  format_on_save = {
-    -- These options will be passed to conform.format()
-    timeout_ms = 500,
-    lsp_format = "fallback",
-  },
-})
-
--- cord.nvim disabled
--- require('cord').setup { ... }
+-- Setup lsp_signature
+require('lsp_signature').setup()
