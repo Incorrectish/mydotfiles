@@ -1,5 +1,6 @@
 keybinds clear-defaults=true {
     tmux {
+        bind "Esc" { SwitchToMode "Normal"; }
         bind "c" { NewTab; SwitchToMode "Normal"; }
         bind "0" { GoToTab 10; SwitchToMode "Normal"; }
         bind "1" { GoToTab 1; SwitchToMode "Normal"; }
