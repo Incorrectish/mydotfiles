@@ -116,3 +116,38 @@ bind \ce ce edit_command_buffer
 
 # opencode
 fish_add_path /Users/ishan/.opencode/bin
+
+# Only run this logic if we are connected via SSH
+if set -q SSH_CONNECTION
+# 1. Define the stable path
+    set -gx SSH_AUTH_SOCK_STABLE "$HOME/.ssh/ssh_auth_sock"
+
+# 2. ONLY update the link if we have a real forwarded socket from SSH
+# We check if the current socket is in /tmp (where SSH puts it)
+    if test -S "$SSH_AUTH_SOCK"; and string match -q "/tmp/*" "$SSH_AUTH_SOCK"
+        ln -sf "$SSH_AUTH_SOCK" "$SSH_AUTH_SOCK_STABLE"
+    end
+
+# 3. Always set the variable to the stable path for this shell and its children
+    set -gx SSH_AUTH_SOCK "$SSH_AUTH_SOCK_STABLE"
+end
+
+function __wezterm_set_uservar --argument name value
+    set -l encoded (printf %s "$value" | base64)
+    printf "\e]1337;SetUserVar=%s=%s\a" $name $encoded
+end
+
+function zellij --wraps zellij --description "Mark panes running zellij for WezTerm key routing"
+    # Turn on routing for this pane
+    __wezterm_set_uservar ZELLIJ 1
+
+    # Run the real zellij
+    command zellij $argv
+        set -l exit_code $status
+    # Turn off routing for this pane after zellij exits
+    __wezterm_set_uservar ZELLIJ 0
+
+    return $exit_code
+end
+
+

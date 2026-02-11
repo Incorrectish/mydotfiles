@@ -1,5 +1,0 @@
-# This file contains fish universal variable definitions.
-# VERSION: 3.0
-SETUVAR --export EDITOR:nvim
-SETUVAR __fish_initialized:4300
-SETUVAR fish_user_paths:/Users/ishan/\x2eopencode/bin\x1e/opt/homebrew/opt/postgresql\x4016/bin\x1e/opt/homebrew/opt/openjdk/bin\x1e/Users/ishan/UMD/CMSC216/test\x1e/home/ishan/\x2elocal/bin\x1e/usr/sbin
