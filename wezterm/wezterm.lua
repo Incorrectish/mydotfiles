@@ -45,13 +45,38 @@ config.inactive_pane_hsb = {
 	brightness = 0.5, -- darker
 }
 
+
+local act = wezterm.action
+
+local function yabai_focus(dir)
+	-- run via a login shell so PATH is correct
+	wezterm.run_child_process({ "/bin/sh", "-lc", "yabai -m window --focus " .. dir })
+end
+
+local function pane_has_zellij(pane)
+	local vars = pane:get_user_vars() or {}
+	return vars.ZELLIJ == "1"
+end
+
+local function zellij_or_yabai(key, dir)
+	return wezterm.action_callback(function(window, pane)
+		if pane_has_zellij(pane) then
+			-- Debug that always shows (even if notifications disabled)
+			window:set_right_status("ZELLIJ")
+			window:perform_action(act.SendKey { key = key, mods = "ALT" }, pane)
+		else
+			window:set_right_status("YABAI")
+			yabai_focus(dir)
+		end
+	end)
+end
+
 config.keys = {
 	-- Movement like tmux/vim (Ctrl-b + n/e/i/o)
-	{ key = 'n', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection 'Left' },
-	{ key = 'e', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection 'Down' },
-	{ key = 'i', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection 'Up' },
-	{ key = 'o', mods = 'LEADER', action = wezterm.action.ActivatePaneDirection 'Right' },
-
+	{ key = "n", mods = "ALT", action = zellij_or_yabai("n", "west") },
+	{ key = "e", mods = "ALT", action = zellij_or_yabai("e", "south") },
+	{ key = "i", mods = "ALT", action = zellij_or_yabai("i", "north") },
+	{ key = "o", mods = "ALT", action = zellij_or_yabai("o", "east") },
 	-- Splitting Panes (Vertical = Right, Horizontal = Down)
 	-- { key = 'v', mods = 'LEADER', action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' } },
 	{
@@ -67,8 +92,6 @@ config.keys = {
 			)
 		end)
 	},
-	-- { key = 'h', mods = 'LEADER', action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' } },
-
 	-- {
 	-- 	key = 'c',
 	-- 	mods = 'LEADER',
@@ -123,5 +146,8 @@ table.insert(config.keys, {
 	mods = "SHIFT",
 	action = wezterm.action.SendString("\x1b[Z"),
 })
+-- Make Option behave like Alt (don’t produce composed/special chars)
+config.send_composed_key_when_left_alt_is_pressed = false
+config.send_composed_key_when_right_alt_is_pressed = false
 
 return config
