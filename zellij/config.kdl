@@ -4,12 +4,15 @@ keybinds clear-defaults=true {
         bind "Alt i" { MoveFocus "up"; }
         bind "Alt n" { MoveFocus "left"; }
         bind "Alt o" { MoveFocus "right"; }
+        bind "Alt E" { MovePane "down"; }
+        bind "Alt I" { MovePane "up"; }
+        bind "Alt N" { MovePane "left"; }
+        bind "Alt O" { MovePane "right"; }
     }
     scroll {
         bind "/" { SwitchToMode "entersearch"; SearchInput 0; }
         bind "?" { SwitchToMode "entersearch"; SearchInput 0; }
         bind "G" { ScrollToBottom; }
-        bind "Ctrl e" { EditScrollback; }
         bind "g" { ScrollToTop; }
         bind "Ctrl y" { ScrollUp; }
     }
@@ -47,10 +50,11 @@ keybinds clear-defaults=true {
         bind "7" { GoToTab 7; SwitchToMode "normal"; }
         bind "8" { GoToTab 8; SwitchToMode "normal"; }
         bind "9" { GoToTab 9; SwitchToMode "normal"; }
+        bind "[" { SwitchToMode "scroll"; }
         bind "c" { CloseFocus; SwitchToMode "normal"; }
         bind "u" { NewTab; SwitchToMode "normal"; }
         bind "h" { NewPane "down"; SwitchToMode "normal"; }
-        bind "s" { SwitchToMode "scroll"; }
+        bind "s" { EditScrollback; SwitchToMode "normal"; }
         bind "v" { NewPane "right"; SwitchToMode "normal"; }
         bind "esc" { SwitchToMode "normal"; }
     }
@@ -285,7 +289,7 @@ default_layout "no-tab-bar-layout"
 // Valid values: positive integers
 // Default value: 10000
 // 
-// scroll_buffer_size 10000
+scroll_buffer_size 10000
  
 // Provide a command to execute when copying text. The text will be piped to
 // the stdin of the program to perform the copy. This can be used with

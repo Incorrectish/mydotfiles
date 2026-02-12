@@ -71,12 +71,36 @@ local function zellij_or_yabai(key, dir)
 	end)
 end
 
+local function yabai_warp(dir, display_dir)
+	local cmd = "yabai -m window --warp " .. dir
+	if display_dir then
+		cmd = cmd .. " || yabai -m window --display " .. display_dir
+	end
+	wezterm.run_child_process({ "/bin/sh", "-lc", cmd })
+end
+
+local function zellij_or_yabai_warp(key, dir, display_dir)
+	return wezterm.action_callback(function(window, pane)
+		if pane_has_zellij(pane) then
+			window:set_right_status("ZELLIJ")
+			window:perform_action(act.SendKey { key = key, mods = "ALT|SHIFT" }, pane)
+		else
+			window:set_right_status("YABAI")
+			yabai_warp(dir, display_dir)
+		end
+	end)
+end
+
 config.keys = {
 	-- Movement like tmux/vim (Ctrl-b + n/e/i/o)
 	{ key = "n", mods = "ALT", action = zellij_or_yabai("n", "west") },
 	{ key = "e", mods = "ALT", action = zellij_or_yabai("e", "south") },
 	{ key = "i", mods = "ALT", action = zellij_or_yabai("i", "north") },
 	{ key = "o", mods = "ALT", action = zellij_or_yabai("o", "east") },
+	{ key = "n", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("N", "west", "west") },
+	{ key = "e", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("E", "south") },
+	{ key = "i", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("I", "north") },
+	{ key = "o", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("O", "east", "east") },
 	-- Splitting Panes (Vertical = Right, Horizontal = Down)
 	-- { key = 'v', mods = 'LEADER', action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' } },
 	{
