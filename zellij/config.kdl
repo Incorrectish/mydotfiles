@@ -23,6 +23,21 @@ keybinds clear-defaults=true {
     shared_except "tmux" {
         bind "Ctrl b" { SwitchToMode "tmux"; }
     }
+    shared {
+        bind "Alt Shift z" { MessagePlugin "autolock" { payload "enable"; }; }
+    }
+    shared_except "tmux" "locked" {
+        bind "Alt z" {
+            MessagePlugin "autolock" { payload "disable"; };
+            SwitchToMode "locked";
+        }
+    }
+    locked {
+        bind "Alt z" {
+            MessagePlugin "autolock" { payload "disable"; };
+            SwitchToMode "normal";
+        }
+    }
     shared_among "scroll" "search" {
         bind "PageDown" { PageScrollDown; }
         bind "PageUp" { PageScrollUp; }
@@ -197,12 +212,19 @@ plugins {
     welcome-screen location="zellij:session-manager" {
         welcome_screen true
     }
+    autolock location="https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm" {
+        is_enabled true
+        triggers "nvim|vim|view|fzf"
+        reaction_seconds "0.1"
+        print_to_log false
+    }
 }
 
 // Plugins to load in the background when a new session starts
 // eg. "file:/path/to/my-plugin.wasm"
 // eg. "https://example.com/my-plugin.wasm"
 load_plugins {
+    autolock
 }
 web_client {
     font "monospace"

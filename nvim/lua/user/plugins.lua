@@ -123,8 +123,25 @@ require('lazy').setup({
   { 'nvim-lualine/lualine.nvim', opts = {} },
   { 'lukas-reineke/indent-blankline.nvim', main = 'ibl', opts = {} },
   { 'folke/which-key.nvim' },
+  { 'folke/snacks.nvim', opts = {} },
   { 'nvimdev/dashboard-nvim' },
   { 'norcalli/nvim-colorizer.lua' },
+  {
+    'akinsho/toggleterm.nvim',
+    version = '*',
+    opts = {
+      open_mapping = [[<c-\>]],
+      insert_mappings = true,
+      terminal_mappings = true,
+      direction = 'float',
+      persist_mode = true,
+      start_in_insert = true,
+      close_on_exit = false,
+      float_opts = {
+        border = 'curved',
+      },
+    },
+  },
 
   -- File management
   { 'kyazdani42/nvim-tree.lua', dependencies = { 'kyazdani42/nvim-web-devicons' } },
@@ -221,8 +238,47 @@ require('lazy').setup({
   -- Markdown
   {
     'MeanderingProgrammer/render-markdown.nvim',
-    opts = {},
+    opts = {
+      anti_conceal = { enabled = false },
+      file_types = { 'markdown', 'opencode_output' },
+    },
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
+  },
+  {
+    'sudo-tee/opencode.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'MeanderingProgrammer/render-markdown.nvim',
+      'folke/snacks.nvim',
+    },
+    config = function()
+      require('opencode').setup {
+        preferred_picker = 'snacks',
+        preferred_completion = 'nvim-cmp',
+        default_global_keymaps = false,
+        ui = {
+          position = 'right',
+          input_position = 'bottom',
+          window_width = 0.4,
+          persist_state = true,
+          input = {
+            auto_hide = false,
+          },
+        },
+      }
+    end,
+  },
+  {
+    'coder/claudecode.nvim',
+    dependencies = { 'folke/snacks.nvim' },
+    opts = {
+      terminal = {
+        split_side = 'right',
+        split_width_percentage = 0.35,
+        provider = 'snacks',
+      },
+    },
+    config = true,
   },
 
   -- Session

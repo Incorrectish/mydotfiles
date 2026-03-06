@@ -1,0 +1,51 @@
+local M = {}
+
+local directions = {
+  n = { vim = 'h', zellij = 'left' },
+  e = { vim = 'j', zellij = 'down' },
+  i = { vim = 'k', zellij = 'up' },
+  o = { vim = 'l', zellij = 'right' },
+}
+
+local move_directions = {
+  N = 'H',
+  E = 'J',
+  I = 'K',
+  O = 'L',
+}
+
+function M.is_active()
+  return vim.env.ZELLIJ == '1' and vim.fn.executable('zellij') == 1
+end
+
+local function move_focus_in_zellij(direction)
+  vim.fn.system({ 'zellij', 'action', 'move-focus', direction })
+end
+
+function M.focus(key)
+  local target = directions[key]
+  if not target then
+    return
+  end
+
+  local current = vim.api.nvim_get_current_win()
+  vim.cmd('wincmd ' .. target.vim)
+  if vim.api.nvim_get_current_win() ~= current then
+    return
+  end
+
+  if M.is_active() then
+    move_focus_in_zellij(target.zellij)
+  end
+end
+
+function M.move_split(key)
+  local target = move_directions[key]
+  if not target then
+    return
+  end
+
+  vim.cmd('wincmd ' .. target)
+end
+
+return M

@@ -1,6 +1,8 @@
 -- All keymaps consolidated
 
 local wk = require('which-key')
+local zellij = require('user.zellij')
+require('user.agents').setup()
 
 -- Basic keymaps
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
@@ -17,6 +19,21 @@ vim.keymap.set('n', '<c-w>n', '<c-w>h')
 vim.keymap.set('n', '<c-w>e', '<c-w>j')
 vim.keymap.set('n', '<c-w>i', '<c-w>k')
 vim.keymap.set('n', '<c-w>o', '<c-w>l')
+
+if zellij.is_active() then
+  vim.keymap.set('n', '<M-n>', function() zellij.focus('n') end, { desc = 'Left (Neovim/Zellij)' })
+  vim.keymap.set('n', '<M-e>', function() zellij.focus('e') end, { desc = 'Down (Neovim/Zellij)' })
+  vim.keymap.set('n', '<M-i>', function() zellij.focus('i') end, { desc = 'Up (Neovim/Zellij)' })
+  vim.keymap.set('n', '<M-o>', function() zellij.focus('o') end, { desc = 'Right (Neovim/Zellij)' })
+
+  vim.keymap.set('n', '<M-N>', function() zellij.move_split('N') end, { desc = 'Move split left' })
+  vim.keymap.set('n', '<M-E>', function() zellij.move_split('E') end, { desc = 'Move split down' })
+  vim.keymap.set('n', '<M-I>', function() zellij.move_split('I') end, { desc = 'Move split up' })
+  vim.keymap.set('n', '<M-O>', function() zellij.move_split('O') end, { desc = 'Move split right' })
+
+  vim.keymap.set('n', '<C-b>h', '<cmd>split<cr>', { desc = 'Horizontal split' })
+  vim.keymap.set('n', '<C-b>v', '<cmd>vsplit<cr>', { desc = 'Vertical split' })
+end
 
 -- Format expression
 vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
@@ -82,6 +99,13 @@ wk.add({
   { '<leader>hm', function() require('harpoon').ui:toggle_quick_menu(require('harpoon'):list()) end, desc = 'Menu' },
   { '<leader>hn', function() require('harpoon'):list():next() end, desc = 'Next' },
   { '<leader>hp', function() require('harpoon'):list():prev() end, desc = 'Previous' },
+
+  -- Agents
+  { '<leader>o', group = 'Agents' },
+  { '<leader>oo', function() require('opencode.api').open_output() end, desc = 'OpenCode Output' },
+  { '<leader>oi', function() require('opencode.api').open_input() end, desc = 'OpenCode Input' },
+  { '<leader>ot', function() require('opencode.api').toggle_focus() end, desc = 'OpenCode Toggle Focus' },
+  { '<leader>oc', '<cmd>ClaudeCode<cr>', desc = 'Claude Code' },
 
   -- Trouble
   { '<leader>t', group = 'Trouble' },

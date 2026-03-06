@@ -6,6 +6,7 @@ local options = {
     conceallevel = 0,                        -- so that `` is visible in markdown files
     fileencoding = "utf-8",                  -- the encoding written to a file
     hlsearch = false,                        -- highlight all matches on previous search pattern
+    hidden = true,                           -- allow hidden buffers so terminal splits persist cleanly
     ignorecase = true,                       -- ignore case in search patterns
     mouse = "a",                             -- allow the mouse to be used in neovim
     pumheight = 10,                          -- pop up menu height
