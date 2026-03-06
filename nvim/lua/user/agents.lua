@@ -1,4 +1,5 @@
 local M = {}
+require('user.claude_mentions').setup()
 
 local function is_agent_buffer(buf)
   local ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
@@ -180,7 +181,15 @@ local function submit_claude_prompt_buffer(buf, win)
 end
 
 local function trigger_claude_mention_completion()
-  return vim.api.nvim_replace_termcodes('@<C-x><C-f>', true, false, true)
+  local keys = vim.api.nvim_replace_termcodes('@', true, false, true)
+  vim.api.nvim_feedkeys(keys, 'in', false)
+
+  vim.schedule(function()
+    local ok, cmp = pcall(require, 'cmp')
+    if ok then
+      cmp.complete()
+    end
+  end)
 end
 
 function M.open_claude_prompt_scratch()
@@ -198,6 +207,16 @@ function M.open_claude_prompt_scratch()
   vim.api.nvim_set_option_value('linebreak', true, { win = win })
   vim.api.nvim_set_option_value('breakindent', true, { win = win })
   vim.api.nvim_buf_set_name(buf, 'claude-prompt://scratch')
+  vim.b[buf].claude_prompt_scratch = true
+
+  local ok, cmp = pcall(require, 'cmp')
+  if ok then
+    cmp.setup.buffer({
+      sources = {
+        { name = 'claude_mentions' },
+      },
+    })
+  end
 
   vim.api.nvim_create_autocmd('BufWriteCmd', {
     buffer = buf,
@@ -215,10 +234,8 @@ function M.open_claude_prompt_scratch()
   end, { buffer = buf, silent = true, desc = 'Close Claude prompt scratch' })
   vim.keymap.set('i', '@', trigger_claude_mention_completion, {
     buffer = buf,
-    expr = true,
     silent = true,
-    replace_keycodes = false,
-    desc = 'Mention file with filename completion',
+    desc = 'Mention file with repo completion',
   })
 
   vim.cmd('startinsert')
