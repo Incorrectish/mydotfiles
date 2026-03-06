@@ -23,18 +23,13 @@ keybinds clear-defaults=true {
     shared_except "tmux" {
         bind "Ctrl b" { SwitchToMode "tmux"; }
     }
-    shared {
-        bind "Alt Shift z" { MessagePlugin "autolock" { payload "enable"; }; }
-    }
-    shared_except "tmux" "locked" {
-        bind "Alt z" {
-            MessagePlugin "autolock" { payload "disable"; };
-            SwitchToMode "locked";
-        }
-    }
     locked {
-        bind "Alt z" {
+        bind "Ctrl l" {
             MessagePlugin "autolock" { payload "disable"; };
+            SwitchToMode "normal";
+        }
+        bind "Ctrl Shift l" {
+            MessagePlugin "autolock" { payload "enable"; };
             SwitchToMode "normal";
         }
     }
@@ -212,7 +207,7 @@ plugins {
     welcome-screen location="zellij:session-manager" {
         welcome_screen true
     }
-    autolock location="https://github.com/fresh2dev/zellij-autolock/releases/download/0.2.2/zellij-autolock.wasm" {
+    autolock location="file:/home/ishan/.config/zellij/plugins/zellij-autolock.wasm" {
         is_enabled true
         triggers "nvim|vim|view|fzf"
         reaction_seconds "0.1"

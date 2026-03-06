@@ -15,7 +15,25 @@ local move_directions = {
 }
 
 function M.is_active()
-  return vim.env.ZELLIJ == '1' and vim.fn.executable('zellij') == 1
+  return vim.env.ZELLIJ ~= nil and vim.env.ZELLIJ ~= '' and vim.fn.executable('zellij') == 1
+end
+
+local function leave_special_mode_then(fn)
+  local mode = vim.api.nvim_get_mode().mode
+
+  if mode:sub(1, 1) == 't' then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-\\><C-n>', true, false, true), 'n', false)
+    vim.schedule(fn)
+    return
+  end
+
+  if mode:sub(1, 1) == 'i' then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+    vim.schedule(fn)
+    return
+  end
+
+  fn()
 end
 
 local function move_focus_in_zellij(direction)
@@ -46,6 +64,28 @@ function M.move_split(key)
   end
 
   vim.cmd('wincmd ' .. target)
+end
+
+function M.focus_any(key)
+  leave_special_mode_then(function()
+    M.focus(key)
+  end)
+end
+
+function M.move_split_any(key)
+  leave_special_mode_then(function()
+    M.move_split(key)
+  end)
+end
+
+function M.create_split(direction)
+  leave_special_mode_then(function()
+    if direction == 'horizontal' then
+      vim.cmd.split()
+    elseif direction == 'vertical' then
+      vim.cmd.vsplit()
+    end
+  end)
 end
 
 return M

@@ -13,6 +13,10 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Previous diagnostic' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Next diagnostic' })
 vim.keymap.set('n', '<leader>dl', vim.diagnostic.setloclist, { desc = '[D]iagnostics [L]ist' })
+vim.keymap.set('n', '<leader>oo', function() require('opencode.api').open_input() end, { desc = 'OpenCode' })
+vim.keymap.set('n', '<leader>oi', function() require('opencode.api').open_input() end, { desc = 'OpenCode Input' })
+vim.keymap.set('n', '<leader>ot', function() require('opencode.api').toggle_focus() end, { desc = 'OpenCode Toggle Focus' })
+vim.keymap.set('n', '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', { desc = 'Claude Code' })
 
 -- Window navigation (Colemak)
 vim.keymap.set('n', '<c-w>n', '<c-w>h')
@@ -21,19 +25,21 @@ vim.keymap.set('n', '<c-w>i', '<c-w>k')
 vim.keymap.set('n', '<c-w>o', '<c-w>l')
 
 if zellij.is_active() then
-  vim.keymap.set('n', '<M-n>', function() zellij.focus('n') end, { desc = 'Left (Neovim/Zellij)' })
-  vim.keymap.set('n', '<M-e>', function() zellij.focus('e') end, { desc = 'Down (Neovim/Zellij)' })
-  vim.keymap.set('n', '<M-i>', function() zellij.focus('i') end, { desc = 'Up (Neovim/Zellij)' })
-  vim.keymap.set('n', '<M-o>', function() zellij.focus('o') end, { desc = 'Right (Neovim/Zellij)' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-n>', function() zellij.focus_any('n') end, { desc = 'Left (Neovim/Zellij)' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-e>', function() zellij.focus_any('e') end, { desc = 'Down (Neovim/Zellij)' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-i>', function() zellij.focus_any('i') end, { desc = 'Up (Neovim/Zellij)' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-o>', function() zellij.focus_any('o') end, { desc = 'Right (Neovim/Zellij)' })
 
-  vim.keymap.set('n', '<M-N>', function() zellij.move_split('N') end, { desc = 'Move split left' })
-  vim.keymap.set('n', '<M-E>', function() zellij.move_split('E') end, { desc = 'Move split down' })
-  vim.keymap.set('n', '<M-I>', function() zellij.move_split('I') end, { desc = 'Move split up' })
-  vim.keymap.set('n', '<M-O>', function() zellij.move_split('O') end, { desc = 'Move split right' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-N>', function() zellij.move_split_any('N') end, { desc = 'Move split left' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-E>', function() zellij.move_split_any('E') end, { desc = 'Move split down' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-I>', function() zellij.move_split_any('I') end, { desc = 'Move split up' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<M-O>', function() zellij.move_split_any('O') end, { desc = 'Move split right' })
 
-  vim.keymap.set('n', '<C-b>h', '<cmd>split<cr>', { desc = 'Horizontal split' })
-  vim.keymap.set('n', '<C-b>v', '<cmd>vsplit<cr>', { desc = 'Vertical split' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<C-b>h', function() zellij.create_split('horizontal') end, { desc = 'Horizontal split' })
+  vim.keymap.set({ 'n', 'i', 't' }, '<C-b>v', function() zellij.create_split('vertical') end, { desc = 'Vertical split' })
 end
+
+vim.keymap.set('t', '<C-]>', [[<C-\><C-n>]], { desc = 'Terminal normal mode' })
 
 -- Format expression
 vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
@@ -102,10 +108,10 @@ wk.add({
 
   -- Agents
   { '<leader>o', group = 'Agents' },
-  { '<leader>oo', function() require('opencode.api').open_output() end, desc = 'OpenCode Output' },
+  { '<leader>oo', function() require('opencode.api').open_input() end, desc = 'OpenCode' },
   { '<leader>oi', function() require('opencode.api').open_input() end, desc = 'OpenCode Input' },
   { '<leader>ot', function() require('opencode.api').toggle_focus() end, desc = 'OpenCode Toggle Focus' },
-  { '<leader>oc', '<cmd>ClaudeCode<cr>', desc = 'Claude Code' },
+  { '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', desc = 'Claude Code' },
 
   -- Trouble
   { '<leader>t', group = 'Trouble' },

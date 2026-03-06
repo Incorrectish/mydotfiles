@@ -156,7 +156,7 @@ require('lazy').setup({
   },
 
   -- Navigation
-  'ggandor/leap.nvim',
+  { url = 'https://codeberg.org/andyg/leap.nvim' },
   {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
@@ -256,13 +256,32 @@ require('lazy').setup({
         preferred_picker = 'snacks',
         preferred_completion = 'nvim-cmp',
         default_global_keymaps = false,
+        keymap = {
+          editor = {
+            ['<leader>oo'] = { 'open_input', desc = 'OpenCode' },
+            ['<leader>oi'] = { 'open_input', desc = 'OpenCode Input' },
+            ['<leader>ot'] = { 'toggle_focus', desc = 'OpenCode Toggle Focus' },
+          },
+          input_window = {
+            ['<C-s>'] = { 'submit_input_prompt', mode = { 'n', 'i' }, desc = 'Submit prompt' },
+            ['<C-j>'] = { 'submit_input_prompt', mode = { 'n', 'i' }, desc = 'Submit prompt' },
+          },
+          output_window = {
+            ['gd'] = false,
+            ['i'] = { 'focus_input', desc = 'Focus input' },
+            ['gr'] = { 'references', desc = 'Browse code references' },
+          },
+        },
         ui = {
           position = 'right',
           input_position = 'bottom',
-          window_width = 0.4,
+          window_width = 0.5,
           persist_state = true,
           input = {
             auto_hide = false,
+            text = {
+              wrap = true,
+            },
           },
         },
       }
