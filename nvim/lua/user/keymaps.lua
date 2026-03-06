@@ -17,6 +17,8 @@ vim.keymap.set('n', '<leader>oo', function() require('opencode.api').open_input(
 vim.keymap.set('n', '<leader>oi', function() require('opencode.api').open_input() end, { desc = 'OpenCode Input' })
 vim.keymap.set('n', '<leader>ot', function() require('opencode.api').toggle_focus() end, { desc = 'OpenCode Toggle Focus' })
 vim.keymap.set('n', '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', { desc = 'Claude Code' })
+vim.keymap.set('n', '<leader>nv', require('user.agents').open_claude_reference_under_cursor, { desc = 'Open file under cursor from agent output' })
+vim.keymap.set('n', '<leader>np', require('user.agents').open_claude_prompt_scratch, { desc = 'Claude prompt scratch' })
 
 -- Window navigation (Colemak)
 vim.keymap.set('n', '<c-w>n', '<c-w>h')
@@ -112,6 +114,9 @@ wk.add({
   { '<leader>oi', function() require('opencode.api').open_input() end, desc = 'OpenCode Input' },
   { '<leader>ot', function() require('opencode.api').toggle_focus() end, desc = 'OpenCode Toggle Focus' },
   { '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', desc = 'Claude Code' },
+  { '<leader>n', group = 'Navigate' },
+  { '<leader>nv', require('user.agents').open_claude_reference_under_cursor, desc = 'Open file under cursor' },
+  { '<leader>np', require('user.agents').open_claude_prompt_scratch, desc = 'Claude prompt scratch' },
 
   -- Trouble
   { '<leader>t', group = 'Trouble' },

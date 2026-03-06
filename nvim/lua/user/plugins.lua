@@ -293,7 +293,7 @@ require('lazy').setup({
     opts = {
       terminal = {
         split_side = 'right',
-        split_width_percentage = 0.35,
+        split_width_percentage = 0.5,
         provider = 'snacks',
       },
     },
