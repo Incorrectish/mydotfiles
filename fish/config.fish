@@ -6,7 +6,12 @@ set -x PKG_CONFIG_PATH /opt/homebrew/opt/postgresql@16/lib/pkgconfig $PKG_CONFIG
 # set -g fish_key_bindings fish_vi_key_bindings
 alias background="~/background/target/release/background"
 alias bitwarden="~/AppImages/Bitwarden-2023.7.0-x86_64.AppImage"
-alias cat="bat"
+
+if test (uname) = Linux
+    alias cat="batcat"
+else
+    alias cat="bat"
+end
 alias ls="eza"
 
 # set -x SHELL /bin/bash
@@ -150,4 +155,11 @@ function zellij --wraps zellij --description "Mark panes running zellij for WezT
     return $exit_code
 end
 
+if status is-interactive
+  set -gx CLAUDE_ALERT_TTY (tty)
+end
 
+
+
+# peon-ping quick controls
+function peon; bash /home/ishan/.claude/hooks/peon-ping/peon.sh $argv; end

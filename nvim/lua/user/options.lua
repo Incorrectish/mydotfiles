@@ -42,6 +42,29 @@ for k, v in pairs(options) do
     vim.opt[k] = v
 end
 
+-- OSC52 clipboard for SSH/TTY sessions.
+if vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil then
+    local function my_paste(_)
+        return function(_)
+            local content = vim.fn.getreg '"'
+            return vim.split(content, "\n")
+        end
+    end
+
+    vim.g.clipboard = {
+        name = "OSC 52",
+        copy = {
+            ["+"] = require("vim.ui.clipboard.osc52").copy "+",
+            ["*"] = require("vim.ui.clipboard.osc52").copy "*",
+        },
+        paste = {
+            ["+"] = my_paste "+",
+            ["*"] = my_paste "*",
+        },
+    }
+end
+
+
 vim.cmd "set whichwrap+=<,>,[,],h,l"
 vim.cmd [[set iskeyword+=-]]
 vim.cmd [[set formatoptions-=cro]] -- TODO: this doesn't seem to work

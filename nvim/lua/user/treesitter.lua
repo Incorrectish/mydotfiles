@@ -37,4 +37,12 @@ vim.defer_fn(function()
   local swap = require('nvim-treesitter-textobjects.swap')
   vim.keymap.set('n', '<leader>a', function() swap.swap_next('@parameter.inner') end, { desc = 'Swap with next parameter' })
   vim.keymap.set('n', '<leader>A', function() swap.swap_previous('@parameter.inner') end, { desc = 'Swap with previous parameter' })
+
+  -- Avoid help/vimdoc errors when parser/query versions are out of sync.
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'help', 'vimdoc' },
+    callback = function(args)
+      vim.treesitter.stop(args.buf)
+    end,
+  })
 end, 0)
