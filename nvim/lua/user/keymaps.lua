@@ -19,6 +19,16 @@ vim.keymap.set('n', '<leader>ot', function() require('opencode.api').toggle_focu
 vim.keymap.set('n', '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', { desc = 'Claude Code' })
 vim.keymap.set('n', '<leader>nv', require('user.agents').open_claude_reference_under_cursor, { desc = 'Open file under cursor from agent output' })
 vim.keymap.set('n', '<leader>np', require('user.agents').open_claude_prompt_scratch, { desc = 'Claude prompt scratch' })
+vim.keymap.set({ 'n', 't' }, '<C-e>', function()
+  local agents = require('user.agents')
+  if agents.is_current_claude_terminal() then
+    agents.open_claude_prompt_scratch()
+    return
+  end
+
+  local keys = vim.api.nvim_replace_termcodes('<C-e>', true, false, true)
+  vim.api.nvim_feedkeys(keys, 'n', false)
+end, { desc = 'Claude prompt scratch from Claude terminal' })
 
 -- Window navigation (Colemak)
 vim.keymap.set('n', '<c-w>n', '<c-w>h')

@@ -1,5 +1,4 @@
 local M = {}
-require('user.claude_mentions').setup()
 
 local function is_agent_buffer(buf)
   local ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
@@ -125,6 +124,11 @@ local function get_claude_terminal_buf()
   end
 end
 
+function M.is_current_claude_terminal()
+  local term_buf = get_claude_terminal_buf()
+  return term_buf ~= nil and vim.api.nvim_get_current_buf() == term_buf
+end
+
 local function send_to_claude_terminal(text)
   local term_buf = get_claude_terminal_buf()
   if not term_buf then
@@ -180,16 +184,84 @@ local function submit_claude_prompt_buffer(buf, win)
   focus_claude_terminal()
 end
 
-local function trigger_claude_mention_completion()
-  local keys = vim.api.nvim_replace_termcodes('@', true, false, true)
-  vim.api.nvim_feedkeys(keys, 'in', false)
+local mention_files_cache = nil
 
-  vim.schedule(function()
-    local ok, cmp = pcall(require, 'cmp')
-    if ok then
-      cmp.complete()
-    end
-  end)
+local function repo_files()
+  if mention_files_cache then
+    return mention_files_cache
+  end
+
+  local git_files = vim.fn.systemlist({ 'git', 'ls-files', '--cached', '--others', '--exclude-standard' })
+  if vim.v.shell_error == 0 then
+    mention_files_cache = git_files
+    return mention_files_cache
+  end
+
+  local rg_files = vim.fn.systemlist({ 'rg', '--files' })
+  if vim.v.shell_error == 0 then
+    mention_files_cache = rg_files
+    return mention_files_cache
+  end
+
+  mention_files_cache = {}
+  return mention_files_cache
+end
+
+local function insert_text_at_cursor(win, buf, text, resume_insert)
+  if not (win and vim.api.nvim_win_is_valid(win) and buf and vim.api.nvim_buf_is_valid(buf)) then
+    return
+  end
+
+  vim.api.nvim_set_current_win(win)
+  local row, col = unpack(vim.api.nvim_win_get_cursor(win))
+  local line = vim.api.nvim_buf_get_lines(buf, row - 1, row, false)[1] or ''
+  local max_col = #line
+  local insert_col = resume_insert and (col + 1) or col
+  insert_col = math.max(0, math.min(insert_col, max_col))
+  vim.api.nvim_buf_set_text(buf, row - 1, insert_col, row - 1, insert_col, { text })
+  if resume_insert then
+    vim.cmd('startinsert')
+    vim.schedule(function()
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_set_cursor(win, { row, insert_col + #text })
+      end
+    end)
+  else
+    vim.api.nvim_win_set_cursor(win, { row, insert_col + #text })
+  end
+end
+
+local function open_claude_mention_picker(win, buf, resume_insert)
+  local ok, pickers = pcall(require, 'telescope.pickers')
+  local ok_finders, finders = pcall(require, 'telescope.finders')
+  local ok_config, telescope_config = pcall(require, 'telescope.config')
+  local ok_actions, actions = pcall(require, 'telescope.actions')
+  local ok_state, action_state = pcall(require, 'telescope.actions.state')
+
+  if not (ok and ok_finders and ok_config and ok_actions and ok_state) then
+    vim.notify('Telescope is required for Claude file mentions', vim.log.levels.WARN)
+    return
+  end
+
+  pickers.new({}, {
+    prompt_title = 'Claude Mention File',
+    finder = finders.new_table {
+      results = repo_files(),
+    },
+    sorter = telescope_config.values.generic_sorter({}),
+    attach_mappings = function(prompt_bufnr, _)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+        if selection and selection[1] then
+          vim.schedule(function()
+            insert_text_at_cursor(win, buf, '@' .. selection[1], resume_insert)
+          end)
+        end
+      end)
+      return true
+    end,
+  }):find()
 end
 
 function M.open_claude_prompt_scratch()
@@ -207,16 +279,6 @@ function M.open_claude_prompt_scratch()
   vim.api.nvim_set_option_value('linebreak', true, { win = win })
   vim.api.nvim_set_option_value('breakindent', true, { win = win })
   vim.api.nvim_buf_set_name(buf, 'claude-prompt://scratch')
-  vim.b[buf].claude_prompt_scratch = true
-
-  local ok, cmp = pcall(require, 'cmp')
-  if ok then
-    cmp.setup.buffer({
-      sources = {
-        { name = 'claude_mentions' },
-      },
-    })
-  end
 
   vim.api.nvim_create_autocmd('BufWriteCmd', {
     buffer = buf,
@@ -225,20 +287,38 @@ function M.open_claude_prompt_scratch()
       submit_claude_prompt_buffer(buf, win)
     end,
   })
-
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_win_close(win, true)
     if vim.api.nvim_win_is_valid(current) then
       vim.api.nvim_set_current_win(current)
     end
   end, { buffer = buf, silent = true, desc = 'Close Claude prompt scratch' })
-  vim.keymap.set('i', '@', trigger_claude_mention_completion, {
+  vim.keymap.set({ 'n', 'i' }, '<C-f>', function()
+    open_claude_mention_picker(win, buf, vim.api.nvim_get_mode().mode:sub(1, 1) == 'i')
+  end, {
     buffer = buf,
     silent = true,
-    desc = 'Mention file with repo completion',
+    desc = 'Insert Claude file mention',
+  })
+  vim.keymap.set('i', '@', function()
+    open_claude_mention_picker(win, buf, true)
+  end, {
+    buffer = buf,
+    silent = true,
+    desc = 'Insert Claude file mention',
+  })
+  vim.keymap.set('i', '<C-v>@', '@', {
+    buffer = buf,
+    silent = true,
+    desc = 'Insert literal @',
   })
 
-  vim.cmd('startinsert')
+  vim.schedule(function()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_set_current_win(win)
+      vim.cmd('startinsert')
+    end
+  end)
 end
 
 local function submit_opencode_prompt()
