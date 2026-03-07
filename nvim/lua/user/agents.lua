@@ -124,21 +124,24 @@ local function get_claude_terminal_buf()
   end
 end
 
+function M.has_claude_terminal()
+  return get_claude_terminal_buf() ~= nil
+end
+
 function M.is_current_claude_terminal()
   local term_buf = get_claude_terminal_buf()
   return term_buf ~= nil and vim.api.nvim_get_current_buf() == term_buf
 end
 
-local function send_to_claude_terminal(text)
-  local term_buf = get_claude_terminal_buf()
+local function send_to_terminal_buffer(term_buf, text)
   if not term_buf then
-    vim.notify('Claude terminal is not available', vim.log.levels.WARN)
+    vim.notify('Target terminal is not available', vim.log.levels.WARN)
     return false
   end
 
   local job_id = vim.b[term_buf].terminal_job_id
   if not job_id then
-    vim.notify('Claude terminal job is not available', vim.log.levels.WARN)
+    vim.notify('Target terminal job is not available', vim.log.levels.WARN)
     return false
   end
 
@@ -147,8 +150,11 @@ local function send_to_claude_terminal(text)
   return true
 end
 
-local function focus_claude_terminal()
-  local term_buf = get_claude_terminal_buf()
+local function send_to_claude_terminal(text)
+  return send_to_terminal_buffer(get_claude_terminal_buf(), text)
+end
+
+local function focus_terminal_buffer(term_buf)
   if not term_buf then
     return
   end
@@ -162,7 +168,11 @@ local function focus_claude_terminal()
   end
 end
 
-local function submit_claude_prompt_buffer(buf, win)
+local function focus_claude_terminal()
+  focus_terminal_buffer(get_claude_terminal_buf())
+end
+
+local function submit_claude_prompt_buffer(buf, win, term_buf)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
   local text = table.concat(lines, '\n')
   if vim.trim(text) == '' then
@@ -170,7 +180,7 @@ local function submit_claude_prompt_buffer(buf, win)
     return
   end
 
-  if not send_to_claude_terminal(text) then
+  if not send_to_terminal_buffer(term_buf or get_claude_terminal_buf(), text) then
     return
   end
 
@@ -181,7 +191,7 @@ local function submit_claude_prompt_buffer(buf, win)
   if vim.api.nvim_buf_is_valid(buf) then
     vim.api.nvim_buf_delete(buf, { force = true })
   end
-  focus_claude_terminal()
+  focus_terminal_buffer(term_buf or get_claude_terminal_buf())
 end
 
 local mention_files_cache = nil
@@ -231,7 +241,7 @@ local function insert_text_at_cursor(win, buf, text, resume_insert)
   end
 end
 
-local function open_claude_mention_picker(win, buf, resume_insert)
+local function open_file_picker(win, buf, prefix, resume_insert, title)
   local ok, pickers = pcall(require, 'telescope.pickers')
   local ok_finders, finders = pcall(require, 'telescope.finders')
   local ok_config, telescope_config = pcall(require, 'telescope.config')
@@ -239,12 +249,12 @@ local function open_claude_mention_picker(win, buf, resume_insert)
   local ok_state, action_state = pcall(require, 'telescope.actions.state')
 
   if not (ok and ok_finders and ok_config and ok_actions and ok_state) then
-    vim.notify('Telescope is required for Claude file mentions', vim.log.levels.WARN)
+    vim.notify('Telescope is required for file picking', vim.log.levels.WARN)
     return
   end
 
   pickers.new({}, {
-    prompt_title = 'Claude Mention File',
+    prompt_title = title or 'Insert File',
     finder = finders.new_table {
       results = repo_files(),
     },
@@ -255,7 +265,7 @@ local function open_claude_mention_picker(win, buf, resume_insert)
         actions.close(prompt_bufnr)
         if selection and selection[1] then
           vim.schedule(function()
-            insert_text_at_cursor(win, buf, '@' .. selection[1], resume_insert)
+            insert_text_at_cursor(win, buf, (prefix or '') .. selection[1], resume_insert)
           end)
         end
       end)
@@ -264,8 +274,25 @@ local function open_claude_mention_picker(win, buf, resume_insert)
   }):find()
 end
 
+local function open_claude_mention_picker(win, buf, resume_insert)
+  open_file_picker(win, buf, '@', resume_insert, 'Claude Mention File')
+end
+
+function M.open_insert_file_picker(prefix)
+  local mode = vim.api.nvim_get_mode().mode:sub(1, 1)
+  local resume_insert = mode == 'i'
+  open_file_picker(vim.api.nvim_get_current_win(), vim.api.nvim_get_current_buf(), prefix or '', resume_insert, 'Insert File')
+end
+
 function M.open_claude_prompt_scratch()
   local current = vim.api.nvim_get_current_win()
+  local current_buf = vim.api.nvim_get_current_buf()
+  local target_term_buf = nil
+  if vim.api.nvim_get_option_value('buftype', { buf = current_buf }) == 'terminal' then
+    target_term_buf = current_buf
+  else
+    target_term_buf = get_claude_terminal_buf()
+  end
   vim.cmd('botright 8new')
   local win = vim.api.nvim_get_current_win()
   local buf = vim.api.nvim_get_current_buf()
@@ -284,7 +311,7 @@ function M.open_claude_prompt_scratch()
     buffer = buf,
     once = true,
     callback = function()
-      submit_claude_prompt_buffer(buf, win)
+      submit_claude_prompt_buffer(buf, win, target_term_buf)
     end,
   })
   vim.keymap.set('n', 'q', function()
