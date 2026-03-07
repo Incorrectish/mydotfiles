@@ -354,6 +354,11 @@ local function setup_claude_terminal_keymaps(buf)
     silent = true,
     desc = 'Claude terminal normal mode',
   })
+  vim.keymap.set('n', 'gd', M.open_claude_reference_under_cursor, {
+    buffer = buf,
+    silent = true,
+    desc = 'Open Claude file reference',
+  })
 end
 
 local function submit_opencode_prompt()
