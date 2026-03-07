@@ -321,12 +321,29 @@ function M.open_claude_prompt_scratch()
   end)
 end
 
+local function setup_claude_terminal_keymaps(buf)
+  vim.keymap.set('t', '<Esc>', [[<C-\><C-n>]], {
+    buffer = buf,
+    silent = true,
+    desc = 'Claude terminal normal mode',
+  })
+end
+
 local function submit_opencode_prompt()
   require('opencode.api').submit_input_prompt()
 end
 
 function M.setup()
   local group = vim.api.nvim_create_augroup('UserAgentWindows', { clear = true })
+
+  vim.api.nvim_create_autocmd({ 'BufEnter', 'TermEnter' }, {
+    group = group,
+    callback = function(args)
+      if M.is_current_claude_terminal() then
+        setup_claude_terminal_keymaps(args.buf)
+      end
+    end,
+  })
 
   vim.api.nvim_create_autocmd('FileType', {
     group = group,
