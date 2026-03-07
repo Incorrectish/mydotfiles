@@ -333,8 +333,50 @@ local function submit_opencode_prompt()
   require('opencode.api').submit_input_prompt()
 end
 
+local function set_opencode_highlights()
+  vim.api.nvim_set_hl(0, 'OpencodeDiffAdd', { link = 'DiffAdd' })
+  vim.api.nvim_set_hl(0, 'OpencodeDiffDelete', { link = 'DiffDelete' })
+  vim.api.nvim_set_hl(0, 'OpencodeDiffAddText', { link = 'DiffAdd' })
+  vim.api.nvim_set_hl(0, 'OpencodeDiffDeleteText', { link = 'DiffDelete' })
+end
+
+function M.refresh_opencode_rendering(buf, win)
+  if not (buf and vim.api.nvim_buf_is_valid(buf)) then
+    return
+  end
+
+  pcall(vim.treesitter.start, buf, 'markdown')
+
+  local ok, render_markdown = pcall(require, 'render-markdown')
+  if ok then
+    pcall(render_markdown.buf_enable)
+    pcall(render_markdown.render, {
+      buf = buf,
+      win = win,
+      event = 'OpencodeDataRendered',
+    })
+  end
+
+  set_opencode_highlights()
+end
+
 function M.setup()
   local group = vim.api.nvim_create_augroup('UserAgentWindows', { clear = true })
+
+  vim.api.nvim_create_autocmd('FileType', {
+    group = group,
+    pattern = { 'opencode', 'opencode_output' },
+    callback = function(args)
+      M.refresh_opencode_rendering(args.buf, vim.api.nvim_get_current_win())
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('ColorScheme', {
+    group = group,
+    callback = set_opencode_highlights,
+  })
+
+  set_opencode_highlights()
 
   vim.api.nvim_create_autocmd({ 'BufEnter', 'TermEnter' }, {
     group = group,

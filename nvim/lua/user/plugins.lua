@@ -15,7 +15,7 @@ require('lazy').setup({
     dependencies = {
       { 'williamboman/mason.nvim', config = true },
       'williamboman/mason-lspconfig.nvim',
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',       opts = {} },
       'folke/neodev.nvim',
     },
   },
@@ -120,10 +120,10 @@ require('lazy').setup({
     end,
   },
   'navarasu/onedark.nvim',
-  { 'nvim-lualine/lualine.nvim', opts = {} },
+  { 'nvim-lualine/lualine.nvim',           opts = {} },
   { 'lukas-reineke/indent-blankline.nvim', main = 'ibl', opts = {} },
   { 'folke/which-key.nvim' },
-  { 'folke/snacks.nvim', opts = {} },
+  { 'folke/snacks.nvim',                   opts = {} },
   { 'nvimdev/dashboard-nvim' },
   { 'norcalli/nvim-colorizer.lua' },
   {
@@ -144,7 +144,7 @@ require('lazy').setup({
   },
 
   -- File management
-  { 'kyazdani42/nvim-tree.lua', dependencies = { 'kyazdani42/nvim-web-devicons' } },
+  { 'kyazdani42/nvim-tree.lua',                  dependencies = { 'kyazdani42/nvim-web-devicons' } },
   {
     'stevearc/oil.nvim',
     opts = {},
@@ -188,7 +188,7 @@ require('lazy').setup({
       opleader = { line = 'gc', block = 'g/' },
     },
   },
-  { 'windwp/nvim-autopairs', config = function() require('nvim-autopairs').setup {} end },
+  { 'windwp/nvim-autopairs',  config = function() require('nvim-autopairs').setup {} end },
 
   -- Diagnostics
   {
@@ -273,10 +273,18 @@ require('lazy').setup({
           },
         },
         ui = {
+          enable_treesitter_markdown = true,
           position = 'right',
           input_position = 'bottom',
           window_width = 0.5,
           persist_state = true,
+          output = {
+            rendering = {
+              on_data_rendered = function(buf, win)
+                require('user.agents').refresh_opencode_rendering(buf, win)
+              end,
+            },
+          },
           input = {
             auto_hide = false,
             text = {
@@ -295,6 +303,11 @@ require('lazy').setup({
         split_side = 'right',
         split_width_percentage = 0.5,
         provider = 'snacks',
+        snacks_win_opts = {
+          wo = {
+            winhighlight = 'Normal:Normal,NormalNC:NormalNC,EndOfBuffer:EndOfBuffer',
+          },
+        },
       },
     },
     config = true,
@@ -304,8 +317,8 @@ require('lazy').setup({
   { 'folke/persistence.nvim', event = 'BufReadPre' },
 
   -- Misc
-  { 'vhyrro/luarocks.nvim', priority = 1000, config = true },
-  { 'm4xshen/hardtime.nvim', dependencies = { 'MunifTanjim/nui.nvim', 'nvim-lua/plenary.nvim' }, opts = {} },
+  { 'vhyrro/luarocks.nvim',   priority = 1000,                                                    config = true },
+  { 'm4xshen/hardtime.nvim',  dependencies = { 'MunifTanjim/nui.nvim', 'nvim-lua/plenary.nvim' }, opts = {} },
   'ThePrimeagen/vim-be-good',
 }, {})
 
