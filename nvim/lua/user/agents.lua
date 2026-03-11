@@ -65,6 +65,77 @@ local function open_in_code_window(path, line)
   end
 end
 
+local function list_windows()
+  local current_tab = vim.api.nvim_get_current_tabpage()
+  local current_win = vim.api.nvim_get_current_win()
+  local items = {}
+
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(current_tab)) do
+    if vim.api.nvim_win_is_valid(win) then
+      local cfg = vim.api.nvim_win_get_config(win)
+      if not (cfg.relative and cfg.relative ~= '') then
+        local buf = vim.api.nvim_win_get_buf(win)
+        local name = vim.api.nvim_buf_get_name(buf)
+        local ft = vim.api.nvim_get_option_value('filetype', { buf = buf })
+        local bt = vim.api.nvim_get_option_value('buftype', { buf = buf })
+
+        if name == '' then
+          name = '[No Name]'
+        else
+          name = vim.fn.fnamemodify(name, ':.')
+        end
+
+        table.insert(items, {
+          win = win,
+          label = string.format('%s %s%s', win == current_win and '*' or ' ', name, ft ~= '' and (' [' .. ft .. ']') or bt ~= '' and (' [' .. bt .. ']') or ''),
+        })
+      end
+    end
+  end
+
+  return items
+end
+
+local window_picker_menu = nil
+
+function M.open_window_picker()
+  local ok, Menu = pcall(require, 'snipe.menu')
+  local ok_config, snipe_config = pcall(require, 'snipe.config')
+  if not (ok and ok_config) then
+    vim.notify('Snipe is required for window picking', vim.log.levels.WARN)
+    return
+  end
+
+  local items = list_windows()
+  if #items == 0 then
+    vim.notify('No windows available', vim.log.levels.WARN)
+    return
+  end
+
+  if not window_picker_menu then
+    window_picker_menu = Menu:new {
+      position = 'center',
+      dictionary = snipe_config.hints.dictionary,
+      open_win_override = { title = 'Windows' },
+    }
+    window_picker_menu:add_new_buffer_callback(function(m)
+      vim.keymap.set('n', '<esc>', function()
+        m:close()
+      end, { buffer = m.buf, nowait = true, silent = true })
+    end)
+  end
+
+  window_picker_menu:open(items, function(m, i)
+    local target = m.items[i] and m.items[i].win
+    m:close()
+    if target and vim.api.nvim_win_is_valid(target) then
+      vim.api.nvim_set_current_win(target)
+    end
+  end, function(item)
+    return item.label
+  end)
+end
+
 local function open_opencode_reference_under_cursor()
   local picker = require('opencode.ui.reference_picker')
   local line = vim.api.nvim_get_current_line()
@@ -86,8 +157,8 @@ local function normalize_path_reference(raw)
   end
 
   local cleaned = raw
-    :gsub("^[%s`\"'(<%[]+", '')
-    :gsub("[%s`\"')>,;%]]+$", '')
+      :gsub("^[%s`\"'(<%[]+", '')
+      :gsub("[%s`\"')>,;%]]+$", '')
 
   local path, line = cleaned:match('^(.-):(%d+)$')
   if not path then
@@ -281,7 +352,8 @@ end
 function M.open_insert_file_picker(prefix)
   local mode = vim.api.nvim_get_mode().mode:sub(1, 1)
   local resume_insert = mode == 'i'
-  open_file_picker(vim.api.nvim_get_current_win(), vim.api.nvim_get_current_buf(), prefix or '', resume_insert, 'Insert File')
+  open_file_picker(vim.api.nvim_get_current_win(), vim.api.nvim_get_current_buf(), prefix or '', resume_insert,
+    'Insert File')
 end
 
 function M.open_claude_prompt_scratch()
@@ -365,6 +437,40 @@ local function submit_opencode_prompt()
   require('opencode.api').submit_input_prompt()
 end
 
+function M.cycle_opencode_mode(step)
+  local ok_promise, Promise = pcall(require, 'opencode.promise')
+  local ok_config, config_file = pcall(require, 'opencode.config_file')
+  local ok_core, core = pcall(require, 'opencode.core')
+  local ok_state, state = pcall(require, 'opencode.state')
+
+  if not (ok_promise and ok_config and ok_core and ok_state) then
+    vim.notify('OpenCode mode switching is not available', vim.log.levels.WARN)
+    return
+  end
+
+  Promise.spawn(function()
+    local modes = config_file.get_opencode_agents():await() or {}
+    if #modes == 0 then
+      vim.notify('No OpenCode modes available', vim.log.levels.WARN)
+      return
+    end
+
+    local current_index = 0
+    for i, mode in ipairs(modes) do
+      if mode == state.current_mode then
+        current_index = i
+        break
+      end
+    end
+
+    local next_index = ((current_index - 1 + (step or 1)) % #modes) + 1
+    local next_mode = modes[next_index]
+    if core.switch_to_mode(next_mode):await() then
+      vim.notify('OpenCode mode: ' .. next_mode, vim.log.levels.INFO)
+    end
+  end)
+end
+
 local function set_opencode_highlights()
   vim.api.nvim_set_hl(0, 'OpencodeDiffAdd', { link = 'DiffAdd' })
   vim.api.nvim_set_hl(0, 'OpencodeDiffDelete', { link = 'DiffDelete' })
@@ -437,9 +543,28 @@ function M.setup()
         desc = 'Submit OpenCode prompt',
         silent = true,
       })
+      vim.keymap.set({ 'n', 'i' }, '<C-CR>', submit_opencode_prompt, {
+        buffer = args.buf,
+        desc = 'Submit OpenCode prompt',
+        silent = true,
+      })
       vim.keymap.set({ 'n', 'i' }, '<C-s>', submit_opencode_prompt, {
         buffer = args.buf,
         desc = 'Submit OpenCode prompt',
+        silent = true,
+      })
+      vim.keymap.set({ 'n', 'i' }, '<Tab>', function()
+        M.cycle_opencode_mode(1)
+      end, {
+        buffer = args.buf,
+        desc = 'Cycle OpenCode mode',
+        silent = true,
+      })
+      vim.keymap.set({ 'n', 'i' }, '<S-Tab>', function()
+        M.cycle_opencode_mode(-1)
+      end, {
+        buffer = args.buf,
+        desc = 'Cycle OpenCode mode backward',
         silent = true,
       })
     end,

@@ -1,7 +1,8 @@
 -- Set up leap mappings manually (create_default_mappings is deprecated)
 -- Avoid S in visual mode to prevent conflict with vim-surround
 vim.keymap.set({'n', 'x', 'o'}, 's',  '<Plug>(leap-forward)')
-vim.keymap.set({'n', 'o'},      'S',  '<Plug>(leap-backward)')  -- no 'x' to avoid vim-surround conflict
+vim.keymap.set('n',             'S',  '<Plug>(leap-from-window)')
+vim.keymap.set({'o'},           'S',  '<Plug>(leap-backward)')
 vim.keymap.set({'n', 'x', 'o'}, 'gs', '<Plug>(leap-from-window)')
 vim.cmd [[autocmd ColorScheme * lua require('leap').init_highlight(true)]]
 require('leap').opts.special_keys.prev_target = '<bs>'

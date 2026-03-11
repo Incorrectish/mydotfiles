@@ -22,21 +22,21 @@ keybinds clear-defaults=true {
     }
     shared_except "tmux" {
         bind "Ctrl b" { SwitchToMode "tmux"; }
-        bind "Ctrl l" {
+        bind "Ctrl ;" {
             MessagePlugin "autolock" { payload "disable"; };
             SwitchToMode "locked";
         }
-        bind "Ctrl Shift l" {
+        bind "Ctrl Shift ;" {
             MessagePlugin "autolock" { payload "enable"; };
             SwitchToMode "normal";
         }
     }
     locked {
-        bind "Ctrl l" {
+        bind "Ctrl ;" {
             MessagePlugin "autolock" { payload "disable"; };
             SwitchToMode "normal";
         }
-        bind "Ctrl Shift l" {
+        bind "Ctrl Shift ;" {
             MessagePlugin "autolock" { payload "enable"; };
             SwitchToMode "normal";
         }

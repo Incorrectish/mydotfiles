@@ -260,6 +260,7 @@ require('lazy').setup({
           editor = {
             ['<leader>oo'] = { 'open_input', desc = 'OpenCode' },
             ['<leader>oi'] = { 'open_input', desc = 'OpenCode Input' },
+            ['<leader>om'] = { 'select_agent', desc = 'OpenCode Select Mode' },
             ['<leader>ot'] = { 'toggle_focus', desc = 'OpenCode Toggle Focus' },
           },
           input_window = {

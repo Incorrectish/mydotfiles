@@ -38,7 +38,7 @@ vim.defer_fn(function()
   vim.keymap.set('n', '<leader>a', function() swap.swap_next('@parameter.inner') end, { desc = 'Swap with next parameter' })
   vim.keymap.set('n', '<leader>A', function() swap.swap_previous('@parameter.inner') end, { desc = 'Swap with previous parameter' })
 
-  -- Avoid help/vimdoc errors when parser/query versions are out of sync.
+  -- Avoid vim/help query errors when parser/query versions are out of sync.
   vim.api.nvim_create_autocmd('FileType', {
     pattern = { 'help', 'vimdoc' },
     callback = function(args)

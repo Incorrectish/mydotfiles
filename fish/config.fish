@@ -159,7 +159,14 @@ if status is-interactive
   set -gx CLAUDE_ALERT_TTY (tty)
 end
 
-
+function zellij_tab_name_update --on-variable PWD
+    if set -q ZELLIJ
+        set dirname $PWD
+        set dirname (string split / $dirname)
+        set dirname $dirname[-1]
+        command nohup zellij action rename-tab $dirname >/dev/null 2>&1
+    end
+end
 
 # peon-ping quick controls
 function peon; bash /home/ishan/.claude/hooks/peon-ping/peon.sh $argv; end
