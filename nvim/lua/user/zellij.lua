@@ -47,7 +47,7 @@ function M.focus(key)
   end
 
   local current = vim.api.nvim_get_current_win()
-  vim.cmd('wincmd ' .. target.vim)
+  vim.cmd.wincmd(target.vim)
   if vim.api.nvim_get_current_win() ~= current then
     return
   end
@@ -63,7 +63,7 @@ function M.move_split(key)
     return
   end
 
-  vim.cmd('wincmd ' .. target)
+  vim.cmd.wincmd(target)
 end
 
 function M.focus_any(key)

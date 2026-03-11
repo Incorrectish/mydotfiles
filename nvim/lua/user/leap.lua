@@ -4,7 +4,11 @@ vim.keymap.set({'n', 'x', 'o'}, 's',  '<Plug>(leap-forward)')
 vim.keymap.set('n',             'S',  '<Plug>(leap-from-window)')
 vim.keymap.set({'o'},           'S',  '<Plug>(leap-backward)')
 vim.keymap.set({'n', 'x', 'o'}, 'gs', '<Plug>(leap-from-window)')
-vim.cmd [[autocmd ColorScheme * lua require('leap').init_highlight(true)]]
+vim.api.nvim_create_autocmd('ColorScheme', {
+  callback = function()
+    require('leap').init_highlight(true)
+  end,
+})
 require('leap').opts.special_keys.prev_target = '<bs>'
 require('leap').opts.special_keys.prev_group = '<bs>'
 require('leap.user').set_repeat_keys('<cr>', '<bs>')
@@ -45,10 +49,10 @@ end
 local function select_node_range(target)
   local mode = api.nvim_get_mode().mode
   -- Force going back to Normal from Visual mode.
-  if not mode:match('no?') then vim.cmd('normal! ' .. mode) end
+  if not mode:match('no?') then vim.cmd.normal({ bang = true, args = { mode } }) end
   vim.fn.cursor(unpack(target.pos))
   local v = mode:match('V') and 'V' or mode:match('�') and '�' or 'v'
-  vim.cmd('normal! ' .. v)
+  vim.cmd.normal({ bang = true, args = { v } })
   vim.fn.cursor(unpack(target.altpos))
 end
 

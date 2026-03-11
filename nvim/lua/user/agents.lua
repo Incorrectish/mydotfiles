@@ -56,7 +56,7 @@ local function open_in_code_window(path, line)
   if target and vim.api.nvim_win_is_valid(target) then
     vim.api.nvim_set_current_win(target)
   else
-    vim.cmd('leftabove vsplit')
+    vim.cmd.leftabove('vsplit')
   end
 
   vim.cmd.edit(vim.fn.fnameescape(path))
@@ -233,7 +233,7 @@ local function focus_terminal_buffer(term_buf)
   for _, win in ipairs(vim.fn.win_findbuf(term_buf)) do
     if vim.api.nvim_win_is_valid(win) then
       vim.api.nvim_set_current_win(win)
-      vim.cmd('startinsert')
+      vim.cmd.startinsert()
       return
     end
   end
@@ -301,7 +301,7 @@ local function insert_text_at_cursor(win, buf, text, resume_insert)
   insert_col = math.max(0, math.min(insert_col, max_col))
   vim.api.nvim_buf_set_text(buf, row - 1, insert_col, row - 1, insert_col, { text })
   if resume_insert then
-    vim.cmd('startinsert')
+    vim.cmd.startinsert()
     vim.schedule(function()
       if vim.api.nvim_win_is_valid(win) then
         vim.api.nvim_win_set_cursor(win, { row, insert_col + #text })
@@ -365,7 +365,7 @@ function M.open_claude_prompt_scratch()
   else
     target_term_buf = get_claude_terminal_buf()
   end
-  vim.cmd('botright 8new')
+  vim.cmd.botright('8new')
   local win = vim.api.nvim_get_current_win()
   local buf = vim.api.nvim_get_current_buf()
 
@@ -415,7 +415,7 @@ function M.open_claude_prompt_scratch()
   vim.schedule(function()
     if vim.api.nvim_win_is_valid(win) then
       vim.api.nvim_set_current_win(win)
-      vim.cmd('startinsert')
+      vim.cmd.startinsert()
     end
   end)
 end

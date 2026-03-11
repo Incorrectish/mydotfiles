@@ -66,8 +66,8 @@ if vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil then
 end
 
 
-vim.cmd "set whichwrap+=<,>,[,],h,l"
-vim.cmd [[set iskeyword+=-]]
-vim.cmd [[set formatoptions-=cro]] -- TODO: this doesn't seem to work
+vim.opt.whichwrap:append('<,>,[,],h,l')
+vim.opt.iskeyword:append('-')
+vim.opt.formatoptions:remove({ 'c', 'r', 'o' })
 -- vim.cmd "set textwidth=80"
-vim.cmd [[set showtabline=0]]
+vim.opt.showtabline = 0
