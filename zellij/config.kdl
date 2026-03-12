@@ -68,6 +68,7 @@ keybinds clear-defaults=true {
         bind "7" { GoToTab 7; SwitchToMode "normal"; }
         bind "8" { GoToTab 8; SwitchToMode "normal"; }
         bind "9" { GoToTab 9; SwitchToMode "normal"; }
+        bind "r" { SwitchToMode "renametab"; TabNameInput 0; }
         bind "[" { SwitchToMode "scroll"; }
         bind "c" { CloseFocus; SwitchToMode "normal"; }
         bind "u" { NewTab; SwitchToMode "normal"; }
