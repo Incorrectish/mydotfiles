@@ -1,9 +1,9 @@
 -- Set up leap mappings manually (create_default_mappings is deprecated)
 -- Avoid S in visual mode to prevent conflict with vim-surround
-vim.keymap.set({'n', 'x', 'o'}, 's',  '<Plug>(leap-forward)')
-vim.keymap.set('n',             'S',  '<Plug>(leap-from-window)')
-vim.keymap.set({'o'},           'S',  '<Plug>(leap-backward)')
-vim.keymap.set({'n', 'x', 'o'}, 'gs', '<Plug>(leap-from-window)')
+vim.keymap.set({ 'n', 'x', 'o' }, 's', '<Plug>(leap-forward)')
+-- vim.keymap.set('n',             'S',  '<Plug>(leap-from-window)')
+vim.keymap.set({ 'n', 'x', 'o' }, 'S', '<Plug>(leap-backward)')
+vim.keymap.set({ 'n', 'x', 'o' }, 'gs', '<Plug>(leap-from-window)')
 vim.api.nvim_create_autocmd('ColorScheme', {
   callback = function()
     require('leap').init_highlight(true)
@@ -32,7 +32,7 @@ local function get_ts_nodes()
   local targets = {}
   local startline, startcol
   for _, node in ipairs(nodes) do
-    startline, startcol, endline, endcol = node:range()  -- (0,0)
+    startline, startcol, endline, endcol = node:range() -- (0,0)
     local startpos = { startline + 1, startcol + 1 }
     local endpos = { endline + 1, endcol + 1 }
     -- Add both ends of the node.
@@ -64,4 +64,4 @@ local function leap_ts()
   }
 end
 
-vim.keymap.set({'x', 'o'}, '\\', leap_ts)
+vim.keymap.set({ 'x', 'o' }, '\\', leap_ts)

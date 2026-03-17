@@ -252,18 +252,35 @@ require('lazy').setup({
       'folke/snacks.nvim',
     },
     config = function()
+      local function opencode_sound_hook(event_name, _data)
+        -- TODO: trigger your sound effect for this Opencode event.
+      end
+
       require('opencode').setup {
         preferred_picker = 'snacks',
         preferred_completion = 'nvim-cmp',
         default_global_keymaps = false,
+        context = {
+          current_file = {
+            enabled = false,
+          },
+        },
+        hooks = {
+          on_done_thinking = function(session)
+            opencode_sound_hook('done_thinking', session)
+          end,
+          on_permission_requested = function(session)
+            opencode_sound_hook('permission_requested', session)
+          end,
+        },
         keymap = {
           editor = {
             ['<leader>oo'] = { 'open_input', desc = 'OpenCode' },
             ['<leader>oi'] = { 'open_input', desc = 'OpenCode Input' },
             ['<leader>om'] = { 'select_agent', desc = 'OpenCode Select Mode' },
-            ['<leader>ot'] = { 'toggle_focus', desc = 'OpenCode Toggle Focus' },
           },
           input_window = {
+            ['<esc>'] = false,
             ['<C-s>'] = { 'submit_input_prompt', mode = { 'n', 'i' }, desc = 'Submit prompt' },
             ['<C-j>'] = { 'submit_input_prompt', mode = { 'n', 'i' }, desc = 'Submit prompt' },
           },
@@ -294,6 +311,22 @@ require('lazy').setup({
           },
         },
       }
+
+      local group = vim.api.nvim_create_augroup('UserOpencodeSoundHooks', { clear = true })
+      vim.api.nvim_create_autocmd('User', {
+        group = group,
+        pattern = 'OpencodeEvent:question.asked',
+        callback = function(args)
+          opencode_sound_hook('question_asked', args.data and args.data.event)
+        end,
+      })
+      vim.api.nvim_create_autocmd('User', {
+        group = group,
+        pattern = 'OpencodeEvent:session.idle',
+        callback = function(args)
+          opencode_sound_hook('session_idle', args.data and args.data.event)
+        end,
+      })
     end,
   },
   {

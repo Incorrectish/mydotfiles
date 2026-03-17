@@ -173,8 +173,46 @@ local function normalize_path_reference(raw)
   return resolved, line and tonumber(line) or nil
 end
 
+local function claude_reference_under_cursor()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+
+  local left = col
+  while left > 1 and not line:sub(left - 1, left - 1):match('%s') do
+    left = left - 1
+  end
+
+  local right = col
+  while right <= #line and not line:sub(right, right):match('%s') do
+    right = right + 1
+  end
+
+  local candidates = {
+    vim.fn.expand('<cfile>'),
+    line:sub(left, right - 1),
+    vim.fn.expand('<cWORD>'),
+  }
+
+  for _, candidate in ipairs(candidates) do
+    local resolved, line_nr = normalize_path_reference(candidate)
+    if resolved then
+      return resolved, line_nr
+    end
+  end
+
+  local window = line:sub(left, right - 1)
+  for start_idx = 1, #window do
+    for end_idx = #window, start_idx, -1 do
+      local resolved, line_nr = normalize_path_reference(window:sub(start_idx, end_idx))
+      if resolved then
+        return resolved, line_nr
+      end
+    end
+  end
+end
+
 function M.open_claude_reference_under_cursor()
-  local resolved, line = normalize_path_reference(vim.fn.expand('<cWORD>'))
+  local resolved, line = claude_reference_under_cursor()
   if not resolved then
     vim.notify('No readable file path under cursor', vim.log.levels.WARN)
     return

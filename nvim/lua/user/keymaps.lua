@@ -17,9 +17,15 @@ vim.keymap.set('n', '<leader>oo', function() require('opencode.api').open_input(
 vim.keymap.set('n', '<leader>oi', function() require('opencode.api').open_input() end, { desc = 'OpenCode Input' })
 vim.keymap.set('n', '<leader>om', function() require('opencode.api').select_agent() end,
   { desc = 'OpenCode Select Mode' })
-vim.keymap.set('n', '<leader>ot', function() require('opencode.api').toggle_focus() end,
-  { desc = 'OpenCode Toggle Focus' })
 vim.keymap.set('n', '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', { desc = 'Claude Code' })
+vim.keymap.set('n', '<leader>otf', function()
+  local enabled = require('opencode.context').toggle_context('current_file')
+  vim.notify('OpenCode current file ' .. (enabled and 'enabled' or 'disabled'))
+end, { desc = 'OpenCode Toggle Current File' })
+vim.keymap.set('n', '<leader>otd', function()
+  local enabled = require('opencode.context').toggle_context('diagnostics')
+  vim.notify('OpenCode diagnostics ' .. (enabled and 'enabled' or 'disabled'))
+end, { desc = 'OpenCode Toggle Diagnostics' })
 vim.keymap.set('n', '<leader>nv', require('user.agents').open_claude_reference_under_cursor,
   { desc = 'Open file under cursor from agent output' })
 vim.keymap.set('n', '<leader>np', require('user.agents').open_claude_prompt_scratch, { desc = 'Claude prompt scratch' })
@@ -133,8 +139,15 @@ wk.add({
   { '<leader>oo', function() require('opencode.api').open_input() end,                               desc = 'OpenCode' },
   { '<leader>oi', function() require('opencode.api').open_input() end,                               desc = 'OpenCode Input' },
   { '<leader>om', function() require('opencode.api').select_agent() end,                             desc = 'OpenCode Select Mode' },
-  { '<leader>ot', function() require('opencode.api').toggle_focus() end,                             desc = 'OpenCode Toggle Focus' },
   { '<leader>oc', '<cmd>ClaudeCodeFocus<cr>',                                                        desc = 'Claude Code' },
+  { '<leader>otf', function()
+    local enabled = require('opencode.context').toggle_context('current_file')
+    vim.notify('OpenCode current file ' .. (enabled and 'enabled' or 'disabled'))
+  end, desc = 'Toggle Current File' },
+  { '<leader>otd', function()
+    local enabled = require('opencode.context').toggle_context('diagnostics')
+    vim.notify('OpenCode diagnostics ' .. (enabled and 'enabled' or 'disabled'))
+  end, desc = 'Toggle Diagnostics' },
   { '<leader>n',  group = 'Navigate' },
   { '<leader>nv', require('user.agents').open_claude_reference_under_cursor,                         desc = 'Open file under cursor' },
   { '<leader>np', require('user.agents').open_claude_prompt_scratch,                                 desc = 'Claude prompt scratch' },
