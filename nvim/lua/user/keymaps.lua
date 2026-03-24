@@ -17,7 +17,7 @@ vim.keymap.set('n', '<leader>oo', function() require('opencode.api').open_input(
 vim.keymap.set('n', '<leader>oi', function() require('opencode.api').open_input() end, { desc = 'OpenCode Input' })
 vim.keymap.set('n', '<leader>om', function() require('opencode.api').select_agent() end,
   { desc = 'OpenCode Select Mode' })
-vim.keymap.set('n', '<leader>oc', '<cmd>ClaudeCodeFocus<cr>', { desc = 'Claude Code' })
+vim.keymap.set('n', '<leader>oc', '<cmd>ClaudeCodeFocus --dangerously-skip-permissions<cr>', { desc = 'Claude Code' })
 vim.keymap.set('n', '<leader>otf', function()
   local enabled = require('opencode.context').toggle_context('current_file')
   vim.notify('OpenCode current file ' .. (enabled and 'enabled' or 'disabled'))
@@ -139,7 +139,7 @@ wk.add({
   { '<leader>oo', function() require('opencode.api').open_input() end,                               desc = 'OpenCode' },
   { '<leader>oi', function() require('opencode.api').open_input() end,                               desc = 'OpenCode Input' },
   { '<leader>om', function() require('opencode.api').select_agent() end,                             desc = 'OpenCode Select Mode' },
-  { '<leader>oc', '<cmd>ClaudeCodeFocus<cr>',                                                        desc = 'Claude Code' },
+  { '<leader>oc', '<cmd>ClaudeCodeFocus --dangerously-skip-permissions<cr>',                        desc = 'Claude Code' },
   { '<leader>otf', function()
     local enabled = require('opencode.context').toggle_context('current_file')
     vim.notify('OpenCode current file ' .. (enabled and 'enabled' or 'disabled'))

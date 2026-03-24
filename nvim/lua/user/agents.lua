@@ -87,7 +87,8 @@ local function list_windows()
 
         table.insert(items, {
           win = win,
-          label = string.format('%s %s%s', win == current_win and '*' or ' ', name, ft ~= '' and (' [' .. ft .. ']') or bt ~= '' and (' [' .. bt .. ']') or ''),
+          label = string.format('%s %s%s', win == current_win and '*' or ' ', name,
+            ft ~= '' and (' [' .. ft .. ']') or bt ~= '' and (' [' .. bt .. ']') or ''),
         })
       end
     end
@@ -591,13 +592,18 @@ function M.setup()
         desc = 'Submit OpenCode prompt',
         silent = true,
       })
-      vim.keymap.set({ 'n', 'i' }, '<Tab>', function()
-        M.cycle_opencode_mode(1)
-      end, {
+      vim.keymap.set('n', '<Esc>', '<Nop>', {
         buffer = args.buf,
-        desc = 'Cycle OpenCode mode',
+        desc = 'Keep OpenCode input open',
         silent = true,
       })
+      -- vim.keymap.set({ 'n', 'i' }, '<Tab>', function()
+      --   M.cycle_opencode_mode(1)
+      -- end, {
+      --   buffer = args.buf,
+      --   desc = 'Cycle OpenCode mode',
+      --   silent = true,
+      -- })
       vim.keymap.set({ 'n', 'i' }, '<S-Tab>', function()
         M.cycle_opencode_mode(-1)
       end, {

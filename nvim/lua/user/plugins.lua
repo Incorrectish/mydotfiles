@@ -256,6 +256,101 @@ require('lazy').setup({
         -- TODO: trigger your sound effect for this Opencode event.
       end
 
+      local function install_opencode_history_windowing()
+        local renderer = require('opencode.ui.renderer')
+        local formatter = require('opencode.ui.formatter')
+        local output_window = require('opencode.ui.output_window')
+        local state = require('opencode.state')
+        local config = require('opencode.config')
+
+        local max_messages = vim.tbl_get(config, 'ui', 'output', 'rendering', 'max_rendered_messages')
+        if not max_messages or max_messages <= 0 then
+          return
+        end
+
+        local original_on_message_updated = renderer.on_message_updated
+
+        local function get_rendered_session_slice(session_data)
+          if #session_data <= max_messages then
+            return session_data, 0
+          end
+
+          local start_idx = #session_data - max_messages + 1
+          return vim.list_slice(session_data, start_idx, #session_data), start_idx - 1
+        end
+
+        local function render_history_truncated_banner(hidden_count)
+          if hidden_count <= 0 then
+            return
+          end
+
+          renderer._write_formatted_data({
+            lines = { string.format('[%d older Opencode messages hidden]', hidden_count) },
+            extmarks = {},
+          })
+        end
+
+        renderer._render_full_session_data = function(session_data, prev_revert, revert)
+          renderer.reset()
+
+          if not state.active_session or not state.messages then
+            return
+          end
+
+          local visible_session_data, hidden_count = get_rendered_session_slice(session_data)
+          local revert_index = nil
+          local set_mode_from_messages = not state.current_model
+
+          render_history_truncated_banner(hidden_count)
+
+          for i, msg in ipairs(visible_session_data) do
+            if state.active_session.revert and state.active_session.revert.messageID == msg.info.id then
+              revert_index = i
+            end
+
+            renderer.on_message_updated({ info = msg.info }, revert_index)
+
+            for _, part in ipairs(msg.parts or {}) do
+              renderer.on_part_updated({ part = part }, revert_index)
+            end
+          end
+
+          if revert_index then
+            renderer._write_formatted_data(formatter._format_revert_message(state.messages, revert_index))
+          end
+
+          if set_mode_from_messages then
+            renderer._set_model_and_mode_from_messages()
+          end
+
+          renderer.scroll_to_bottom(true)
+
+          if config.hooks and config.hooks.on_session_loaded then
+            pcall(config.hooks.on_session_loaded, state.active_session)
+          end
+        end
+
+        renderer.on_message_updated = function(properties, revert_index)
+          local message = properties and properties.info
+          local seen = false
+
+          if message and message.id and state.messages then
+            for _, existing in ipairs(state.messages) do
+              if existing.info and existing.info.id == message.id then
+                seen = true
+                break
+              end
+            end
+          end
+
+          original_on_message_updated(properties, revert_index)
+
+          if not seen and state.messages and #state.messages > max_messages and output_window.mounted() then
+            renderer._render_full_session_data(state.messages)
+          end
+        end
+      end
+
       require('opencode').setup {
         preferred_picker = 'snacks',
         preferred_completion = 'nvim-cmp',
@@ -298,6 +393,8 @@ require('lazy').setup({
           persist_state = true,
           output = {
             rendering = {
+              -- Set to nil to restore full-session rendering.
+              max_rendered_messages = 150,
               on_data_rendered = function(buf, win)
                 require('user.agents').refresh_opencode_rendering(buf, win)
               end,
@@ -311,6 +408,8 @@ require('lazy').setup({
           },
         },
       }
+
+      install_opencode_history_windowing()
 
       local group = vim.api.nvim_create_augroup('UserOpencodeSoundHooks', { clear = true })
       vim.api.nvim_create_autocmd('User', {
