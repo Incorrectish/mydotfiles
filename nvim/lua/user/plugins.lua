@@ -394,7 +394,7 @@ require('lazy').setup({
           output = {
             rendering = {
               -- Set to nil to restore full-session rendering.
-              max_rendered_messages = 150,
+              max_rendered_messages = 10,
               on_data_rendered = function(buf, win)
                 require('user.agents').refresh_opencode_rendering(buf, win)
               end,
