@@ -4,6 +4,7 @@ local ns = vim.api.nvim_create_namespace('user_pr_review_notes')
 local sign_name = 'UserPrReviewNote'
 local notes = {}
 local scratch_bufnr = nil
+local rendering_scratch = false
 
 vim.fn.sign_define(sign_name, {
   text = '!',
@@ -13,6 +14,33 @@ vim.fn.sign_define(sign_name, {
 
 local function note_key(bufnr, start_line, end_line)
   return tostring(bufnr) .. ':' .. tostring(start_line) .. ':' .. tostring(end_line)
+end
+
+local function clear_note_marks(note)
+  if note.sign_ids then
+    for _, sign_id in ipairs(note.sign_ids) do
+      pcall(vim.fn.sign_unplace, 'user_pr_review_notes', {
+        buffer = note.bufnr,
+        id = sign_id,
+      })
+    end
+  elseif note.sign_id then
+    pcall(vim.fn.sign_unplace, 'user_pr_review_notes', {
+      buffer = note.bufnr,
+      id = note.sign_id,
+    })
+  end
+
+  if note.extmark_ids then
+    for _, extmark_id in ipairs(note.extmark_ids) do
+      pcall(vim.api.nvim_buf_del_extmark, note.bufnr, ns, extmark_id)
+    end
+  elseif note.extmark_id then
+    pcall(vim.api.nvim_buf_del_extmark, note.bufnr, ns, note.extmark_id)
+  end
+
+  note.sign_ids = {}
+  note.extmark_ids = {}
 end
 
 local function buffer_path(bufnr)
@@ -80,30 +108,35 @@ local function refresh_scratch()
     return
   end
 
+  rendering_scratch = true
   vim.bo[scratch_bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(scratch_bufnr, 0, -1, false, render_lines())
-  vim.bo[scratch_bufnr].modifiable = false
+  vim.bo[scratch_bufnr].modified = false
+  rendering_scratch = false
 end
 
 local function put_note_mark(note)
-  pcall(vim.fn.sign_unplace, 'user_pr_review_notes', {
-    buffer = note.bufnr,
-    id = note.sign_id,
-  })
+  clear_note_marks(note)
 
-  pcall(vim.api.nvim_buf_del_extmark, note.bufnr, ns, note.extmark_id)
+  local line_count = vim.api.nvim_buf_line_count(note.bufnr)
+  local start_line = math.min(math.max(note.start_line, 1), line_count)
+  local end_line = math.min(math.max(note.end_line, 1), line_count)
 
-  note.sign_id = note.bufnr * 100000 + note.start_line
-  note.extmark_id = vim.api.nvim_buf_set_extmark(note.bufnr, ns, note.start_line - 1, 0, {
-    virt_text = { { ' PR note', 'DiagnosticWarn' } },
-    virt_text_pos = 'eol',
-    hl_mode = 'combine',
-  })
+  for line = start_line, end_line do
+    local sign_id = note.bufnr * 100000 + line
+    local extmark_id = vim.api.nvim_buf_set_extmark(note.bufnr, ns, line - 1, 0, {
+      virt_text = { { line == start_line and ' PR note' or ' PR note range', 'DiagnosticWarn' } },
+      virt_text_pos = 'eol',
+      hl_mode = 'combine',
+    })
 
-  vim.fn.sign_place(note.sign_id, 'user_pr_review_notes', sign_name, note.bufnr, {
-    lnum = note.start_line,
-    priority = 20,
-  })
+    table.insert(note.sign_ids, sign_id)
+    table.insert(note.extmark_ids, extmark_id)
+    vim.fn.sign_place(sign_id, 'user_pr_review_notes', sign_name, note.bufnr, {
+      lnum = line,
+      priority = 20,
+    })
+  end
 end
 
 local function current_line()
@@ -118,6 +151,99 @@ local function note_at(bufnr, line)
       return key, note
     end
   end
+end
+
+local function parse_location(location)
+  local path, start_line, end_line = location:match('^(.-):(%d+)%-(%d+)$')
+  if path then
+    return path, tonumber(start_line), tonumber(end_line)
+  end
+
+  path, start_line = location:match('^(.-):(%d+)$')
+  if path then
+    return path, tonumber(start_line), tonumber(start_line)
+  end
+end
+
+local function parse_scratch_lines(lines)
+  local parsed = {}
+  local current = nil
+
+  for _, line in ipairs(lines) do
+    local location = line:match('^%-%s+(.+)$')
+    if location then
+      local path, start_line, end_line = parse_location(location)
+      if path and start_line and end_line then
+        current = {
+          path = path,
+          start_line = start_line,
+          end_line = end_line,
+          text_lines = {},
+        }
+        table.insert(parsed, current)
+      else
+        current = nil
+      end
+    elseif current then
+      local text_line = line:match('^%s%s(.*)$')
+      if text_line then
+        table.insert(current.text_lines, text_line)
+      elseif line ~= '' then
+        table.insert(current.text_lines, line)
+      end
+    end
+  end
+
+  return parsed
+end
+
+local function find_note_buffer(path)
+  for _, note in pairs(notes) do
+    if note.path == path and vim.api.nvim_buf_is_valid(note.bufnr) then
+      return note.bufnr
+    end
+  end
+
+  local full_path = vim.fn.fnamemodify(path, ':p')
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_get_name(bufnr) == full_path then
+      return bufnr
+    end
+  end
+end
+
+local function apply_scratch_edits()
+  if rendering_scratch or not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
+    return
+  end
+
+  local parsed = parse_scratch_lines(vim.api.nvim_buf_get_lines(scratch_bufnr, 0, -1, false))
+  local next_notes = {}
+
+  for _, note in pairs(notes) do
+    clear_note_marks(note)
+  end
+
+  for _, item in ipairs(parsed) do
+    local bufnr = find_note_buffer(item.path)
+    if bufnr then
+      local note = {
+        bufnr = bufnr,
+        path = item.path,
+        start_line = item.start_line,
+        end_line = item.end_line,
+        text = table.concat(item.text_lines, '\n'),
+      }
+
+      if note.text ~= '' then
+        next_notes[note_key(bufnr, note.start_line, note.end_line)] = note
+        put_note_mark(note)
+      end
+    end
+  end
+
+  notes = next_notes
+  refresh_scratch()
 end
 
 function M.add(start_line, end_line)
@@ -155,6 +281,8 @@ function M.add(start_line, end_line)
       path = path,
       start_line = start_line,
       end_line = end_line,
+      sign_ids = {},
+      extmark_ids = {},
     }
     note.text = text
     notes[note_key(bufnr, start_line, end_line)] = note
@@ -173,11 +301,7 @@ function M.delete()
     return
   end
 
-  pcall(vim.fn.sign_unplace, 'user_pr_review_notes', {
-    buffer = note.bufnr,
-    id = note.sign_id,
-  })
-  pcall(vim.api.nvim_buf_del_extmark, note.bufnr, ns, note.extmark_id)
+  clear_note_marks(note)
   notes[key] = nil
   refresh_scratch()
 end
@@ -185,10 +309,18 @@ end
 function M.open()
   if not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
     scratch_bufnr = vim.api.nvim_create_buf(false, true)
-    vim.bo[scratch_bufnr].buftype = 'nofile'
+    vim.bo[scratch_bufnr].buftype = 'acwrite'
     vim.bo[scratch_bufnr].bufhidden = 'hide'
     vim.bo[scratch_bufnr].filetype = 'markdown'
     vim.api.nvim_buf_set_name(scratch_bufnr, 'Local PR Review Notes')
+    vim.api.nvim_create_autocmd('BufWriteCmd', {
+      buffer = scratch_bufnr,
+      callback = function(args)
+        apply_scratch_edits()
+        vim.bo[args.buf].modified = false
+        vim.notify('Local PR review notes updated')
+      end,
+    })
   end
 
   refresh_scratch()
@@ -206,11 +338,7 @@ end
 
 function M.clear()
   for key, note in pairs(notes) do
-    pcall(vim.fn.sign_unplace, 'user_pr_review_notes', {
-      buffer = note.bufnr,
-      id = note.sign_id,
-    })
-    pcall(vim.api.nvim_buf_del_extmark, note.bufnr, ns, note.extmark_id)
+    clear_note_marks(note)
     notes[key] = nil
   end
   refresh_scratch()
