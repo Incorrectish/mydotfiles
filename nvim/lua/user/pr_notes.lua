@@ -5,6 +5,7 @@ local sign_name = 'UserPrReviewNote'
 local notes = {}
 local scratch_bufnr = nil
 local rendering_scratch = false
+local next_note_id = 1
 
 vim.fn.sign_define(sign_name, {
   text = '!',
@@ -14,6 +15,12 @@ vim.fn.sign_define(sign_name, {
 
 local function note_key(bufnr, start_line, end_line)
   return tostring(bufnr) .. ':' .. tostring(start_line) .. ':' .. tostring(end_line)
+end
+
+local function allocate_note_id()
+  local id = next_note_id
+  next_note_id = next_note_id + 1
+  return id
 end
 
 local function clear_note_marks(note)
@@ -93,7 +100,7 @@ local function render_lines()
     local location = note.start_line == note.end_line
         and string.format('%s:%d', note.path, note.start_line)
         or string.format('%s:%d-%d', note.path, note.start_line, note.end_line)
-    table.insert(lines, '- ' .. location)
+    table.insert(lines, string.format('- [%d] %s', note.id, location))
     for line in note.text:gmatch('[^\n]+') do
       table.insert(lines, '  ' .. line)
     end
@@ -154,14 +161,17 @@ local function note_at(bufnr, line)
 end
 
 local function parse_location(location)
+  local id, rest = location:match('^%[(%d+)%]%s+(.+)$')
+  location = rest or location
+
   local path, start_line, end_line = location:match('^(.-):(%d+)%-(%d+)$')
   if path then
-    return path, tonumber(start_line), tonumber(end_line)
+    return tonumber(id), path, tonumber(start_line), tonumber(end_line)
   end
 
   path, start_line = location:match('^(.-):(%d+)$')
   if path then
-    return path, tonumber(start_line), tonumber(start_line)
+    return tonumber(id), path, tonumber(start_line), tonumber(start_line)
   end
 end
 
@@ -172,9 +182,10 @@ local function parse_scratch_lines(lines)
   for _, line in ipairs(lines) do
     local location = line:match('^%-%s+(.+)$')
     if location then
-      local path, start_line, end_line = parse_location(location)
+      local id, path, start_line, end_line = parse_location(location)
       if path and start_line and end_line then
         current = {
+          id = id,
           path = path,
           start_line = start_line,
           end_line = end_line,
@@ -212,6 +223,18 @@ local function find_note_buffer(path)
   end
 end
 
+local function find_note_by_id(id)
+  if not id then
+    return nil
+  end
+
+  for key, note in pairs(notes) do
+    if note.id == id then
+      return key, note
+    end
+  end
+end
+
 local function apply_scratch_edits()
   if rendering_scratch or not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
     return
@@ -225,9 +248,11 @@ local function apply_scratch_edits()
   end
 
   for _, item in ipairs(parsed) do
-    local bufnr = find_note_buffer(item.path)
+    local _, existing_note = find_note_by_id(item.id)
+    local bufnr = existing_note and existing_note.bufnr or find_note_buffer(item.path)
     if bufnr then
       local note = {
+        id = item.id or allocate_note_id(),
         bufnr = bufnr,
         path = item.path,
         start_line = item.start_line,
@@ -277,6 +302,7 @@ function M.add(start_line, end_line)
     end
 
     local note = existing or {
+      id = allocate_note_id(),
       bufnr = bufnr,
       path = path,
       start_line = start_line,
