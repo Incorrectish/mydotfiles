@@ -82,7 +82,8 @@ local function sorted_notes()
   return items
 end
 
-local function render_lines()
+local function render_lines(opts)
+  opts = opts or {}
   local lines = {
     '# Local PR Review Notes',
     '',
@@ -100,7 +101,11 @@ local function render_lines()
     local location = note.start_line == note.end_line
         and string.format('%s:%d', note.path, note.start_line)
         or string.format('%s:%d-%d', note.path, note.start_line, note.end_line)
-    table.insert(lines, string.format('- [%d] %s', note.id, location))
+    if opts.include_ids == false then
+      table.insert(lines, '- ' .. location)
+    else
+      table.insert(lines, string.format('- [%d] %s', note.id, location))
+    end
     for line in note.text:gmatch('[^\n]+') do
       table.insert(lines, '  ' .. line)
     end
@@ -355,7 +360,7 @@ function M.open()
 end
 
 function M.yank()
-  local lines = render_lines()
+  local lines = render_lines({ include_ids = false })
   local text = table.concat(lines, '\n')
   vim.fn.setreg('+', text)
   vim.fn.setreg('"', text)
