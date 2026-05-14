@@ -35,6 +35,9 @@ end, { desc = 'Claude prompt scratch' })
 vim.keymap.set('i', '<C-f>', function()
   require('user.agents').open_insert_file_picker()
 end, { desc = 'Insert file path' })
+vim.keymap.set({ 'n', 'x' }, '<leader>pa', function()
+  require('user.pr_notes').add()
+end, { desc = 'Add local PR note' })
 vim.keymap.set('n', 'gw', require('user.agents').open_window_picker, { desc = 'Pick window' })
 vim.keymap.set({ 'n', 'x', 'o' }, 'gW', function()
   require('leap').leap {
@@ -105,7 +108,10 @@ wk.add({
   { '<leader>po', '<cmd>Octo<cr>',                                                                   desc = 'Open Octo picker' },
   { '<leader>pv', '<cmd>Octo pr<cr>',                                                                desc = 'Open current branch PR' },
   { '<leader>pd', '<cmd>Octo review<cr>',                                                            desc = 'Review current branch PR' },
-  { '<leader>pD', '<cmd>Octo pr diff<cr>',                                                           desc = 'PR diff buffer' },
+  { '<leader>pa', function() require('user.pr_notes').add() end,                                      desc = 'Add local note' },
+  { '<leader>pn', function() require('user.pr_notes').open() end,                                     desc = 'Show local notes' },
+  { '<leader>py', function() require('user.pr_notes').yank() end,                                     desc = 'Yank local notes' },
+  { '<leader>pD', function() require('user.pr_notes').delete() end,                                   desc = 'Delete local note' },
   { '<leader>pf', '<cmd>Octo pr changes<cr>',                                                        desc = 'Changed files' },
   { '<leader>pc', '<cmd>Octo pr commits<cr>',                                                        desc = 'Commits' },
   { '<leader>pk', '<cmd>Octo pr checks<cr>',                                                         desc = 'Checks' },
