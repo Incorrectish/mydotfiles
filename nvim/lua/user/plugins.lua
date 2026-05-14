@@ -120,6 +120,7 @@ require('lazy').setup({
     opts = {
       picker = 'telescope',
       enable_builtin = true,
+      use_local_fs = true,
       default_remote = { 'origin', 'upstream' },
       file_panel = {
         size = 14,
