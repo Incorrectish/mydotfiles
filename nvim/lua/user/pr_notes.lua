@@ -106,17 +106,6 @@ local function put_note_mark(note)
   })
 end
 
-local function visual_range()
-  local start_line = vim.fn.line("'<")
-  local end_line = vim.fn.line("'>")
-
-  if start_line > end_line then
-    start_line, end_line = end_line, start_line
-  end
-
-  return start_line, end_line
-end
-
 local function current_line()
   local bufnr = vim.api.nvim_get_current_buf()
   local line = vim.api.nvim_win_get_cursor(0)[1]
@@ -131,17 +120,21 @@ local function note_at(bufnr, line)
   end
 end
 
-function M.add()
+function M.add(start_line, end_line)
   local bufnr = vim.api.nvim_get_current_buf()
-  local mode = vim.fn.mode()
-  local start_line, end_line
 
-  if mode == 'v' or mode == 'V' or mode == '\22' then
-    start_line, end_line = visual_range()
-  else
+  if not start_line or not end_line then
     start_line = current_line()
     end_line = start_line
   end
+
+  if start_line > end_line then
+    start_line, end_line = end_line, start_line
+  end
+
+  local line_count = vim.api.nvim_buf_line_count(bufnr)
+  start_line = math.min(math.max(start_line, 1), line_count)
+  end_line = math.min(math.max(end_line, 1), line_count)
 
   local path = buffer_path(bufnr)
   local existing = notes[note_key(bufnr, start_line, end_line)]
