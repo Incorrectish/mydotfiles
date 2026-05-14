@@ -46,3 +46,5 @@ vim.defer_fn(function()
     end,
   })
 end, 0)
+
+vim.treesitter.language.register('markdown', 'octo')

@@ -103,7 +103,9 @@ wk.add({
   { '<leader>pl', '<cmd>Octo pr list<cr>',                                                           desc = 'List PRs' },
   { '<leader>ps', '<cmd>Octo pr search<cr>',                                                         desc = 'Search PRs' },
   { '<leader>po', '<cmd>Octo<cr>',                                                                   desc = 'Open Octo picker' },
-  { '<leader>pd', '<cmd>Octo pr diff<cr>',                                                           desc = 'PR diff' },
+  { '<leader>pv', '<cmd>Octo pr<cr>',                                                                desc = 'Open current branch PR' },
+  { '<leader>pd', '<cmd>Octo review<cr>',                                                            desc = 'Review current branch PR' },
+  { '<leader>pD', '<cmd>Octo pr diff<cr>',                                                           desc = 'PR diff buffer' },
   { '<leader>pf', '<cmd>Octo pr changes<cr>',                                                        desc = 'Changed files' },
   { '<leader>pc', '<cmd>Octo pr commits<cr>',                                                        desc = 'Commits' },
   { '<leader>pk', '<cmd>Octo pr checks<cr>',                                                         desc = 'Checks' },
@@ -111,7 +113,7 @@ wk.add({
   { '<leader>pR', '<cmd>Octo review resume<cr>',                                                     desc = 'Resume review' },
   { '<leader>pC', '<cmd>Octo review comments<cr>',                                                   desc = 'Pending comments' },
   { '<leader>pS', '<cmd>Octo review submit<cr>',                                                     desc = 'Submit review' },
-  { '<leader>pD', '<cmd>Octo review discard<cr>',                                                    desc = 'Discard review' },
+  { '<leader>px', '<cmd>Octo review discard<cr>',                                                    desc = 'Discard review' },
   { '<leader>pq', '<cmd>Octo review close<cr>',                                                      desc = 'Close review' },
 
   -- LSP
