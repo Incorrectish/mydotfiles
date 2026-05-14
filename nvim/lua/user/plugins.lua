@@ -109,6 +109,27 @@ require('lazy').setup({
     },
     config = true,
   },
+  {
+    'pwntester/octo.nvim',
+    cmd = 'Octo',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
+      'nvim-tree/nvim-web-devicons',
+    },
+    opts = {
+      picker = 'telescope',
+      enable_builtin = true,
+      default_remote = { 'origin', 'upstream' },
+      file_panel = {
+        size = 14,
+        use_icons = true,
+      },
+      suppress_missing_scope = {
+        projects_v2 = true,
+      },
+    },
+  },
 
   -- UI
   {
