@@ -115,6 +115,12 @@ local function render_lines(opts)
   return lines
 end
 
+local function strip_scratch_ids(lines)
+  return vim.tbl_map(function(line)
+    return line:gsub('^(%-%s+)%[%d+%]%s+', '%1')
+  end, lines)
+end
+
 local function refresh_scratch()
   if not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
     return
@@ -360,7 +366,14 @@ function M.open()
 end
 
 function M.yank()
-  local lines = render_lines({ include_ids = false })
+  local lines
+  if scratch_bufnr and vim.api.nvim_buf_is_valid(scratch_bufnr) then
+    lines = vim.api.nvim_buf_get_lines(scratch_bufnr, 0, -1, false)
+    lines = strip_scratch_ids(lines)
+  else
+    lines = render_lines({ include_ids = false })
+  end
+
   local text = table.concat(lines, '\n')
   vim.fn.setreg('+', text)
   vim.fn.setreg('"', text)
