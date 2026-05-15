@@ -3,21 +3,39 @@
 #
 # Wired via ~/.codex/config.toml:
 #   notify = ["bash", "/abs/path/to/agent-hooks/codex-notify.sh"]
-# Codex invokes the script with $1 = event name (agent-turn-complete,
-# session-start, error, permission*, …) and sets CODEX_SESSION_ID +
-# PWD in the environment.
+# Codex invokes the script with a SINGLE argument: a JSON object
+# describing the event. Shape (current Codex):
+#   {"type":"agent-turn-complete","thread-id":"...","turn-id":"...",
+#    "cwd":"...","client":"codex-tui",
+#    "input-messages":[...full chat history, can be 30KB+...],
+#    "last-assistant-message":"..."}
+# We extract only the small fields (type, thread-id, cwd) and drop
+# everything else on the floor — the agent's already shown its output
+# in the terminal; the ping just needs to say "something happened."
 #
 # Title shape:
-#   codex:<git-branch-or-cwd-basename>:<sha256(session_id)[:4]>
-#
-# The server's autopick hashes the title to a sound so the same Codex
-# session plays the same chime across all events.
+#   codex:<git-branch-or-cwd-basename>:<sha256(thread-id)[:4]>
 
 set -uo pipefail
 
-EVENT="${1:-event}"
-SESSION_ID="${CODEX_SESSION_ID:-}"
-CWD="${PWD:-$(pwd)}"
+PAYLOAD="${1:-}"
+
+parse() {
+  python3 - <<'PY' "$PAYLOAD" "$1" 2>/dev/null
+import json, sys
+try:
+    d = json.loads(sys.argv[1]) if sys.argv[1] else {}
+    v = d.get(sys.argv[2], '')
+    print(v if isinstance(v, str) else json.dumps(v))
+except Exception:
+    pass
+PY
+}
+
+TYPE=$(parse type)
+SESSION_ID=$(parse thread-id)
+PAYLOAD_CWD=$(parse cwd)
+CWD="${PAYLOAD_CWD:-${PWD:-$(pwd)}}"
 
 BRANCH=""
 if branch=$(git -C "$CWD" branch --show-current 2>/dev/null) && [ -n "$branch" ]; then
@@ -33,12 +51,13 @@ else
 fi
 
 TITLE="codex:${BRANCH}:${HASH}"
-case "$EVENT" in
+case "$TYPE" in
   agent-turn-complete|complete|done) MSG="turn done" ;;
   start|session-start)               MSG="session start" ;;
   error|fail*)                       MSG="error" ;;
   permission*|approve*)              MSG="needs approval" ;;
-  *)                                  MSG="$EVENT" ;;
+  '')                                 MSG="event" ;;
+  *)                                  MSG="$TYPE" ;;
 esac
 
 BODY=$(python3 - "$TITLE" "$MSG" <<'PY'
