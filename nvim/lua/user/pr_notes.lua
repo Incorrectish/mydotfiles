@@ -85,9 +85,7 @@ end
 local function render_lines(opts)
   opts = opts or {}
   local lines = {
-    '# Local PR Review Notes',
-    '',
-    'These notes are local to this Neovim session. They are not posted to GitHub.',
+    '# Review Notes',
     '',
   }
 
