@@ -37,9 +37,15 @@ SESSION_ID=$(parse thread-id)
 PAYLOAD_CWD=$(parse cwd)
 CWD="${PAYLOAD_CWD:-${PWD:-$(pwd)}}"
 
+# Generic trunk names don't distinguish repos — fall back to dir
+# basename so two "main" sessions in different projects get different
+# titles (and therefore different hash-picked chimes).
 BRANCH=""
 if branch=$(git -C "$CWD" branch --show-current 2>/dev/null) && [ -n "$branch" ]; then
-  BRANCH=$branch
+  case "$branch" in
+    main|master|main-thru) BRANCH=$(basename "$CWD") ;;
+    *)                     BRANCH=$branch ;;
+  esac
 else
   BRANCH=$(basename "$CWD")
 fi

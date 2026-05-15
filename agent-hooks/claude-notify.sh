@@ -34,9 +34,16 @@ NOTIF_MSG=$(parse message)
 
 # Branch name when in a git checkout, else basename of cwd. Detached-
 # HEAD case (--show-current empty) also falls back to basename.
+# Generic trunk names (main / master / main-thru) don't distinguish
+# repos — fall back to the dir basename in those cases so two
+# "main" sessions in different projects get different titles and
+# therefore different hash-picked chimes.
 BRANCH=""
 if branch=$(git -C "$CWD" branch --show-current 2>/dev/null) && [ -n "$branch" ]; then
-  BRANCH=$branch
+  case "$branch" in
+    main|master|main-thru) BRANCH=$(basename "$CWD") ;;
+    *)                     BRANCH=$branch ;;
+  esac
 else
   BRANCH=$(basename "$CWD")
 fi
