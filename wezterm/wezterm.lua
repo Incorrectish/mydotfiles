@@ -30,7 +30,7 @@ config.colors = {
 }
 -- config.font = wezterm.font 'Jetbrains Mono'
 config.font = wezterm.font 'FantasqueSansM Nerd Font Mono'
-config.font_size = 18.0
+config.font_size = 14.0
 config.window_background_opacity = 0.9
 config.text_background_opacity = 0.3
 config.hide_tab_bar_if_only_one_tab = true
@@ -93,10 +93,10 @@ end
 
 config.keys = {
 	-- Movement like tmux/vim (Ctrl-b + n/e/i/o)
-	{ key = "n", mods = "ALT", action = zellij_or_yabai("n", "west") },
-	{ key = "e", mods = "ALT", action = zellij_or_yabai("e", "south") },
-	{ key = "i", mods = "ALT", action = zellij_or_yabai("i", "north") },
-	{ key = "o", mods = "ALT", action = zellij_or_yabai("o", "east") },
+	{ key = "n", mods = "ALT",       action = zellij_or_yabai("n", "west") },
+	{ key = "e", mods = "ALT",       action = zellij_or_yabai("e", "south") },
+	{ key = "i", mods = "ALT",       action = zellij_or_yabai("i", "north") },
+	{ key = "o", mods = "ALT",       action = zellij_or_yabai("o", "east") },
 	{ key = "n", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("N", "west", "west") },
 	{ key = "e", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("E", "south") },
 	{ key = "i", mods = "ALT|SHIFT", action = zellij_or_yabai_warp("I", "north") },
@@ -135,7 +135,7 @@ config.keys = {
 				f:close()
 				window:perform_action(
 					wezterm.action.SpawnCommandInNewWindow {
-						args = { 'nvim', tmpfile },
+						args = { '/opt/homebrew/bin/nvim', tmpfile },
 					},
 					pane
 				)
@@ -173,5 +173,6 @@ table.insert(config.keys, {
 -- Make Option behave like Alt (don’t produce composed/special chars)
 config.send_composed_key_when_left_alt_is_pressed = false
 config.send_composed_key_when_right_alt_is_pressed = false
+config.bypass_mouse_reporting_modifiers = ''
 
 return config

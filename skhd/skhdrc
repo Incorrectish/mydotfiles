@@ -43,7 +43,6 @@ alt + shift - o [
 ]
 alt + shift - r : yabai --restart-service
 alt + shift - b : yabai -m space --balance
-alt + ctrl - e : emacs &disown
 
 alt + shift - 1 : yabai -m window --space 1
 alt + shift - 2 : yabai -m window --space 2
